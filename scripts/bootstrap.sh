@@ -14,6 +14,8 @@ AGENT_SUBDIR_DEFAULT="codex"
 AGENT_DIR_DEFAULT="$HOME/.codex"
 AGENT_FILE_DEFAULT="AGENTS.md"
 AGENT_LINK_DEFAULT="agents.md"
+AGENT_CONFIG_FILE_DEFAULT="config.toml"
+AGENT_CONFIG_LINK_DEFAULT="config.toml"
 AGENT_SKILLS_DIR_DEFAULT="skills"
 AGENT_SKILLS_LINK_DEFAULT="skills"
 
@@ -67,10 +69,14 @@ validate_layout() {
   local agent_subdir="${AGENT_SUBDIR:-${CODEX_SUBDIR:-$AGENT_SUBDIR_DEFAULT}}"
   local agent_path="${repo_dir}/${agent_subdir}"
   local agent_file="${AGENT_FILE:-$AGENT_FILE_DEFAULT}"
+  local config_file="${AGENT_CONFIG_FILE:-$AGENT_CONFIG_FILE_DEFAULT}"
   local skills_dir="${AGENT_SKILLS_DIR:-$AGENT_SKILLS_DIR_DEFAULT}"
 
   [ -d "$agent_path" ] || { err "Expected folder: ${agent_path}"; exit 1; }
   [ -f "${agent_path}/${agent_file}" ] || { err "Expected file: ${agent_path}/${agent_file}"; exit 1; }
+  if [ -n "$config_file" ]; then
+    [ -f "${agent_path}/${config_file}" ] || { err "Expected file: ${agent_path}/${config_file}"; exit 1; }
+  fi
   if [ -n "$skills_dir" ]; then
     [ -d "${agent_path}/${skills_dir}" ] || { err "Expected folder: ${agent_path}/${skills_dir}"; exit 1; }
   fi
@@ -83,23 +89,34 @@ install_symlinks() {
   local agent_dir="${AGENT_DIR:-${CODEX_DIR:-$AGENT_DIR_DEFAULT}}"
   local agent_file="${AGENT_FILE:-$AGENT_FILE_DEFAULT}"
   local agent_link="${AGENT_LINK:-$AGENT_LINK_DEFAULT}"
+  local config_file="${AGENT_CONFIG_FILE:-$AGENT_CONFIG_FILE_DEFAULT}"
+  local config_link="${AGENT_CONFIG_LINK:-$AGENT_CONFIG_LINK_DEFAULT}"
   local skills_dir="${AGENT_SKILLS_DIR:-$AGENT_SKILLS_DIR_DEFAULT}"
   local skills_link="${AGENT_SKILLS_LINK:-$AGENT_SKILLS_LINK_DEFAULT}"
 
   mkdir -p "$agent_dir"
 
   backup_if_exists "${agent_dir}/${agent_link}"
+  if [ -n "$config_file" ]; then
+    backup_if_exists "${agent_dir}/${config_link}"
+  fi
   if [ -n "$skills_dir" ]; then
     backup_if_exists "${agent_dir}/${skills_link}"
   fi
 
   ln -sfn "${agent_path}/${agent_file}" "${agent_dir}/${agent_link}"
+  if [ -n "$config_file" ]; then
+    ln -sfn "${agent_path}/${config_file}" "${agent_dir}/${config_link}"
+  fi
   if [ -n "$skills_dir" ]; then
     ln -sfn "${agent_path}/${skills_dir}" "${agent_dir}/${skills_link}"
   fi
 
   log "Symlinks set:"
   log "  ${agent_dir}/${agent_link} -> ${agent_path}/${agent_file}"
+  if [ -n "$config_file" ]; then
+    log "  ${agent_dir}/${config_link} -> ${agent_path}/${config_file}"
+  fi
   if [ -n "$skills_dir" ]; then
     log "  ${agent_dir}/${skills_link} -> ${agent_path}/${skills_dir}"
   fi

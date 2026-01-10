@@ -18,6 +18,7 @@ chmod +x scripts/bootstrap.sh
 
 Defaults (Codex):
 - `~/.codex/agents.md` -> `codex/AGENTS.md`
+- `~/.codex/config.toml` -> `codex/config.toml`
 - `~/.codex/skills` -> `codex/skills`
 - cron: `git pull --ff-only` every 60m (expected branch + clean tree)
 
@@ -27,6 +28,7 @@ Env overrides:
 - `AGENT_SUBDIR` (default `codex`)
 - `AGENT_DIR` (default `~/.codex`)
 - `AGENT_FILE` / `AGENT_LINK` (default `AGENTS.md` / `agents.md`)
+- `AGENT_CONFIG_FILE` / `AGENT_CONFIG_LINK` (default `config.toml` / `config.toml`, set `AGENT_CONFIG_FILE=""` to skip)
 - `AGENT_SKILLS_DIR` / `AGENT_SKILLS_LINK` (default `skills` / `skills`, set `AGENT_SKILLS_DIR=""` to skip)
 - `AGENT_CONFIG_BRANCH` (default `main`)
 - `PULL_EVERY_MINUTES` (default `60`)
