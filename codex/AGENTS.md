@@ -1,29 +1,15 @@
 # AGENTS.MD
 
-Alex owns this.
 Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 
 ## Agent Protocol
 - Contact: Alex Kvamme (@kvamme (X), @apfk88 (Github)).
 - “Make a note” => edit AGENTS.md (shortcut; not a blocker). Ignore `CLAUDE.md`.
 - Keep files <~500 LOC; split/refactor as needed.
-- Editor: `zed <path>`.
 - Prefer end-to-end verify; if blocked, say what’s missing.
 - New deps: quick health check (recent releases/commits, adoption).
 - Web: search early; quote exact errors; prefer 2025–2026 sources
 - Use Codex background for long jobs
-
-## Screenshots (“use a screenshot”)
-- Pick newest PNG in `~/Desktop` or `~/Downloads`.
-- Verify it’s the right UI (ignore filename).
-- Size: `sips -g pixelWidth -g pixelHeight <file>` (prefer 2×).
-- Optimize: `imageoptim <file>` (install: `brew install imageoptim-cli`).
-- Replace asset; keep dimensions; commit; run gate; verify CI.
-
-## Important Locations
-- Blog repo: `~/Dev/Personal/kvamme-site-astro`
-- Workspace: `~/Dev`. Missing repo: clone `https://github.com/dev/<repo>.git`.
-- `~/Dev` is organized by the two organizations I write code for: Quiet Capital (~/dev/quiet) (github @quietcap), 8080 (~/dev/8080) (github @8080io), and personal projects (~/dev/personal)
 
 ## Git
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.

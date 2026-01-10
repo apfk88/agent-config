@@ -1,0 +1,42 @@
+# agent-config
+
+Shared coding-agent config; symlink targets. Defaults to Codex today; add others (Claude, etc.) later.
+
+## Layout
+- `codex/` Codex config (AGENTS, rules, skills).
+- `scripts/bootstrap.sh` setup + auto-pull.
+
+## Bootstrap
+Prereqs: `gh` auth, `git`, `crontab`.
+
+```sh
+gh repo clone apfk88/agent-config ~/repos/agent-config
+cd ~/repos/agent-config
+chmod +x scripts/bootstrap.sh
+./scripts/bootstrap.sh
+```
+
+Defaults (Codex):
+- `~/.codex/agents.md` -> `codex/AGENTS.md`
+- `~/.codex/skills` -> `codex/skills`
+- cron: `git pull --ff-only` every 60m (expected branch + clean tree)
+
+Env overrides:
+- `AGENT_CONFIG_REPO_DIR` (default `~/repos/agent-config`)
+- `AGENT_CONFIG_REPO_SLUG` (default `apfk88/agent-config`)
+- `AGENT_SUBDIR` (default `codex`)
+- `AGENT_DIR` (default `~/.codex`)
+- `AGENT_FILE` / `AGENT_LINK` (default `AGENTS.md` / `agents.md`)
+- `AGENT_SKILLS_DIR` / `AGENT_SKILLS_LINK` (default `skills` / `skills`, set `AGENT_SKILLS_DIR=""` to skip)
+- `AGENT_CONFIG_BRANCH` (default `main`)
+- `PULL_EVERY_MINUTES` (default `60`)
+
+Other agents: set `AGENT_SUBDIR` + `AGENT_DIR` (and file/skills names if they differ).
+
+Disable auto-pull:
+```sh
+crontab -l | grep -v "agent-config-autopull" | crontab -
+```
+
+Notes:
+- Public repo; no secrets.
