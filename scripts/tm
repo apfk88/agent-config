@@ -20,6 +20,8 @@ need_cmd() {
   command -v "$1" >/dev/null 2>&1 || { err "Missing required command: $1"; exit 1; }
 }
 
+DEV_DIR_DEFAULT="$HOME/dev"
+
 repo_root_if_inside() {
   if git rev-parse --show-toplevel >/dev/null 2>&1; then
     git rev-parse --show-toplevel
@@ -78,6 +80,7 @@ pick_repo() {
   local input="${1:-}"
   local branch_override="${2:-}"
   local branch=""
+  local dev_dir="${DEV_DIR:-$DEV_DIR_DEFAULT}"
 
   if [ -n "$branch_override" ] && [[ "$input" == *"#"* ]]; then
     err "Use either <repo>#<branch> or <repo> <branch>"
@@ -96,6 +99,13 @@ pick_repo() {
   fi
 
   if [ -n "$input" ]; then
+    if [[ "$input" != */* ]]; then
+      local dev_path="${dev_dir}/${input}"
+      if [ -d "$dev_path" ]; then
+        printf '%s\t%s' "$(cd "$dev_path" && pwd -P)" "$branch"
+        return 0
+      fi
+    fi
     if [ -d "$input" ]; then
       printf '%s\t%s' "$(cd "$input" && pwd -P)" "$branch"
       return 0
