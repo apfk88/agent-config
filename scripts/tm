@@ -10,7 +10,7 @@ Usage:
   tm new <slug>#<branch>        Shorthand for repo + branch
   tm attach            List tmux sessions and attach
   tm list              List tmux sessions
-  tm kill              Pick a tmux session to kill
+  tm kill [name]       Pick a tmux session to kill (or pass name)
   tm rename [new]      Rename current session (or pick)
   tm help              Show this help
 USAGE
@@ -153,6 +153,14 @@ get_sessions() {
   tmux list-sessions -F '#S' 2>/dev/null || true
 }
 
+menu_out() {
+  if [ -w /dev/tty ]; then
+    printf '%s\n' "$*" > /dev/tty
+  else
+    printf '%s\n' "$*" >&2
+  fi
+}
+
 choose_session() {
   local sessions
   sessions="$(get_sessions)"
@@ -161,10 +169,10 @@ choose_session() {
     exit 1
   fi
 
-  log "Sessions:"
+  menu_out "Sessions:"
   local i=1
   while IFS= read -r s; do
-    printf '  [%s] %s\n' "$i" "$s"
+    menu_out "  [$i] $s"
     i=$((i + 1))
   done <<<"$sessions"
 
@@ -217,8 +225,15 @@ list_sessions() {
 }
 
 kill_session() {
-  local target
-  target="$(choose_session)"
+  local target="${1:-}"
+  if [ -n "$target" ]; then
+    if ! tmux has-session -t "$target" 2>/dev/null; then
+      err "No such session: $target"
+      exit 1
+    fi
+  else
+    target="$(choose_session)"
+  fi
   tmux kill-session -t "$target"
   log "Killed: $target"
 }
@@ -330,7 +345,8 @@ main() {
       list_sessions
       ;;
     kill)
-      kill_session
+      shift
+      kill_session "${1:-}"
       ;;
     rename)
       shift
