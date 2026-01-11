@@ -169,7 +169,7 @@ choose_session() {
     exit 1
   fi
 
-  menu_out "Sessions:"
+  menu_out "Active sessions:"
   local i=1
   while IFS= read -r s; do
     menu_out "  [$i] $s"
@@ -177,21 +177,30 @@ choose_session() {
   done <<<"$sessions"
 
   local choice
-  read -r -p "Choose session #: " choice
-  if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+  read -r -p "Choose session # or name: " choice
+  if [ -z "$choice" ]; then
     err "Invalid choice"
     exit 1
   fi
 
-  local idx=1
   local target=""
-  while IFS= read -r s; do
-    if [ "$idx" -eq "$choice" ]; then
-      target="$s"
-      break
-    fi
-    idx=$((idx + 1))
-  done <<<"$sessions"
+  if [[ "$choice" =~ ^[0-9]+$ ]]; then
+    local idx=1
+    while IFS= read -r s; do
+      if [ "$idx" -eq "$choice" ]; then
+        target="$s"
+        break
+      fi
+      idx=$((idx + 1))
+    done <<<"$sessions"
+  else
+    while IFS= read -r s; do
+      if [ "$s" = "$choice" ]; then
+        target="$s"
+        break
+      fi
+    done <<<"$sessions"
+  fi
 
   if [ -z "$target" ]; then
     err "Invalid choice"
