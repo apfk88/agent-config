@@ -8,6 +8,9 @@ usage() {
 Usage:
   tm new [path|url]    Create repo session (agent-0/agent-1/server/bash)
   tm attach            List tmux sessions and attach
+  tm list              List tmux sessions
+  tm kill              Pick a tmux session to kill
+  tm rename [new]      Rename current session (or pick)
   tm help              Show this help
 USAGE
 }
@@ -121,9 +124,13 @@ attach_or_switch() {
   fi
 }
 
-attach_session() {
+get_sessions() {
+  tmux list-sessions -F '#S' 2>/dev/null || true
+}
+
+choose_session() {
   local sessions
-  sessions="$(tmux list-sessions -F '#S' 2>/dev/null || true)"
+  sessions="$(get_sessions)"
   if [ -z "$sessions" ]; then
     err "No tmux sessions"
     exit 1
@@ -158,7 +165,68 @@ attach_session() {
     exit 1
   fi
 
+  printf '%s' "$target"
+}
+
+attach_session() {
+  local target
+  target="$(choose_session)"
   attach_or_switch "$target"
+}
+
+list_sessions() {
+  local sessions
+  sessions="$(get_sessions)"
+  if [ -z "$sessions" ]; then
+    err "No tmux sessions"
+    exit 1
+  fi
+
+  log "Sessions:"
+  local i=1
+  while IFS= read -r s; do
+    printf '  [%s] %s\n' "$i" "$s"
+    i=$((i + 1))
+  done <<<"$sessions"
+
+}
+
+kill_session() {
+  local target
+  target="$(choose_session)"
+  tmux kill-session -t "$target"
+  log "Killed: $target"
+}
+
+current_session() {
+  tmux display-message -p '#S' 2>/dev/null || true
+}
+
+rename_session() {
+  local new_name="${1:-}"
+  local old_name=""
+
+  if [ -n "$new_name" ] && [ -n "${TMUX-}" ]; then
+    old_name="$(current_session)"
+  elif [ -n "$new_name" ] && [ -z "${TMUX-}" ]; then
+    old_name="$(choose_session)"
+  else
+    old_name="$(choose_session)"
+    read -r -p "New name: " new_name
+  fi
+
+  if [ -z "$new_name" ]; then
+    err "No new name"
+    exit 1
+  fi
+
+  if tmux has-session -t "$new_name" 2>/dev/null; then
+    err "Session exists: $new_name"
+    exit 1
+  fi
+
+  tmux rename-session -t "$old_name" "$new_name"
+  log "Renamed: $old_name -> $new_name"
 }
 
 new_session() {
@@ -198,6 +266,16 @@ main() {
       ;;
     attach)
       attach_session
+      ;;
+    list)
+      list_sessions
+      ;;
+    kill)
+      kill_session
+      ;;
+    rename)
+      shift
+      rename_session "${1:-}"
       ;;
     -h|--help|help)
       usage
