@@ -6,7 +6,8 @@ err() { printf 'ERROR: %s\n' "$*" >&2; }
 usage() {
   cat <<'USAGE'
 Usage:
-  tm new [path|url]    Create repo session (agent-0/agent-1/server/bash)
+  tm new [path|url] [branch]    Create repo session (agent-0/agent-1/server/bash)
+  tm new <slug>#<branch>        Shorthand for repo + branch
   tm attach            List tmux sessions and attach
   tm list              List tmux sessions
   tm kill              Pick a tmux session to kill
@@ -46,6 +47,7 @@ clone_repo() {
   local input="$1"
   local url="$input"
   local dest_base="$2"
+  local branch="${3:-}"
 
   if [[ "$input" =~ ^[^/]+/[^/]+$ ]]; then
     url="https://github.com/${input}.git"
@@ -62,24 +64,47 @@ clone_repo() {
     exit 1
   fi
 
-  log "Cloning ${url} -> ${dest}"
-  git clone "$url" "$dest"
+  if [ -n "$branch" ]; then
+    log "Cloning ${url} (branch ${branch}) -> ${dest}"
+    git clone --branch "$branch" --single-branch "$url" "$dest"
+  else
+    log "Cloning ${url} -> ${dest}"
+    git clone "$url" "$dest"
+  fi
   printf '%s' "$dest"
 }
 
 pick_repo() {
   local input="${1:-}"
+  local branch_override="${2:-}"
+  local branch=""
+
+  if [ -n "$branch_override" ] && [[ "$input" == *"#"* ]]; then
+    err "Use either <repo>#<branch> or <repo> <branch>"
+    exit 1
+  fi
+
+  if [ -z "$branch_override" ] && [[ "$input" == *"#"* ]]; then
+    branch="${input#*#}"
+    input="${input%%#*}"
+    if [ -z "$branch" ]; then
+      err "Branch missing after #"
+      exit 1
+    fi
+  else
+    branch="$branch_override"
+  fi
 
   if [ -n "$input" ]; then
     if [ -d "$input" ]; then
-      (cd "$input" && pwd -P)
+      printf '%s\t%s' "$(cd "$input" && pwd -P)" "$branch"
       return 0
     fi
     if is_url_like "$input"; then
       local base
       read -r -p "Clone into (default: $HOME/Dev): " base
       base="${base:-$HOME/Dev}"
-      clone_repo "$input" "$base"
+      printf '%s\t%s' "$(clone_repo "$input" "$base" "$branch")" "$branch"
       return 0
     fi
     err "Not a repo path or URL: $input"
@@ -88,7 +113,7 @@ pick_repo() {
 
   local inside=""
   if inside="$(repo_root_if_inside)"; then
-    printf '%s' "$inside"
+    printf '%s\t%s' "$inside" "$branch"
     return 0
   fi
 
@@ -99,7 +124,7 @@ pick_repo() {
   fi
 
   if [ -d "$input" ]; then
-    (cd "$input" && pwd -P)
+    printf '%s\t%s' "$(cd "$input" && pwd -P)" "$branch"
     return 0
   fi
 
@@ -107,7 +132,7 @@ pick_repo() {
     local base
     read -r -p "Clone into (default: $HOME/Dev): " base
     base="${base:-$HOME/Dev}"
-    clone_repo "$input" "$base"
+    printf '%s\t%s' "$(clone_repo "$input" "$base" "$branch")" "$branch"
     return 0
   fi
 
@@ -229,14 +254,47 @@ rename_session() {
   log "Renamed: $old_name -> $new_name"
 }
 
+switch_branch() {
+  local repo_dir="$1"
+  local branch="$2"
+
+  if [ -z "$branch" ]; then
+    return 0
+  fi
+
+  if [ -n "$(git -C "$repo_dir" status --porcelain)" ]; then
+    err "Dirty repo, won’t checkout branch: ${branch}"
+    exit 1
+  fi
+
+  if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$branch"; then
+    git -C "$repo_dir" checkout "$branch"
+    return 0
+  fi
+
+  if git -C "$repo_dir" show-ref --verify --quiet "refs/remotes/origin/$branch"; then
+    git -C "$repo_dir" checkout -b "$branch" "origin/$branch"
+    return 0
+  fi
+
+  err "Branch not found: $branch"
+  exit 1
+}
+
 new_session() {
   local repo_dir
-  repo_dir="$(pick_repo "${1:-}")"
+  local branch="${2:-}"
+  local picked=""
+  local picked_branch=""
+  picked="$(pick_repo "${1:-}" "$branch")"
+  IFS=$'\t' read -r repo_dir picked_branch <<<"$picked"
 
   if ! git -C "$repo_dir" rev-parse --show-toplevel >/dev/null 2>&1; then
     err "Not a git repo: ${repo_dir}"
     exit 1
   fi
+
+  switch_branch "$repo_dir" "$picked_branch"
 
   local session
   session="$(basename "$repo_dir")"
