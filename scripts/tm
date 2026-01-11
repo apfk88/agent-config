@@ -6,8 +6,9 @@ err() { printf 'ERROR: %s\n' "$*" >&2; }
 usage() {
   cat <<'USAGE'
 Usage:
-  tm new [path|url]    Create repo session (agent/server/bash)
+  tm new [path|url]    Create repo session (agent-0/agent-1/server/bash)
   tm attach            List tmux sessions and attach
+  tm help              Show this help
 USAGE
 }
 
@@ -199,6 +200,9 @@ main() {
       attach_session
       ;;
     -h|--help|help)
+      usage
+      ;;
+    help)
       usage
       ;;
     *)
