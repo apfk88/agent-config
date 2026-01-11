@@ -177,7 +177,8 @@ new_session() {
     return 0
   fi
 
-  tmux new-session -d -s "$session" -c "$repo_dir" -n agent
+  tmux new-session -d -s "$session" -c "$repo_dir" -n agent-0
+  tmux new-window -t "$session":1 -n agent-1 -c "$repo_dir"
   tmux new-window -t "$session":2 -n server -c "$repo_dir"
   tmux new-window -t "$session":3 -n bash -c "$repo_dir"
 

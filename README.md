@@ -42,7 +42,7 @@ crontab -l | grep -v "agent-config-autopull" | crontab -
 ```
 
 ## Tmux helper
-`tm new` creates a session named after the repo (windows: agent, server, bash). If not in a repo, it prompts for a path or GitHub URL (clones if needed).  
+`tm new` creates a session named after the repo (windows: agent-0, agent-1, server, bash). If not in a repo, it prompts for a path or GitHub URL (clones if needed).  
 `tm attach` lists tmux sessions and asks which to attach.
 
 Make it runnable anywhere:
