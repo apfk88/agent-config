@@ -154,6 +154,7 @@ install_tm_helper() {
     tm_path="${repo_dir}/${tm_source}"
   fi
   [ -f "$tm_path" ] || { err "Expected tm script: ${tm_path}"; exit 1; }
+  tm_path="$(cd "$(dirname "$tm_path")" && pwd -P)/$(basename "$tm_path")"
 
   mkdir -p "$bin_dir"
   ensure_link "$tm_path" "${bin_dir}/${tm_link}"
@@ -162,16 +163,47 @@ install_tm_helper() {
   log "  ${bin_dir}/${tm_link} -> ${tm_path}"
 }
 
+cron_expr_for_minutes() {
+  local minutes="$1"
+  if [ "$minutes" -lt 1 ]; then
+    err "Invalid PULL_EVERY_MINUTES: ${minutes}"
+    exit 1
+  fi
+  if [ "$minutes" -lt 60 ]; then
+    printf '*/%s * * * *' "$minutes"
+    return 0
+  fi
+  if [ $((minutes % 60)) -eq 0 ]; then
+    printf '0 */%s * * *' "$((minutes / 60))"
+    return 0
+  fi
+  err "PULL_EVERY_MINUTES over 59 must be divisible by 60; got ${minutes}, using 59"
+  printf '*/59 * * * *'
+}
+
+detect_default_branch() {
+  local repo_dir="$1"
+  local branch=""
+  branch="$(git -C "$repo_dir" symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || true)"
+  branch="${branch##*/}"
+  if [ -z "$branch" ]; then
+    branch="$(git -C "$repo_dir" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  fi
+  printf '%s' "${branch:-$BRANCH_DEFAULT}"
+}
+
 install_cron_autopull() {
   local repo_dir="$1"
   local minutes="${PULL_EVERY_MINUTES:-$PULL_EVERY_MINUTES_DEFAULT}"
-  local branch="${AGENT_CONFIG_BRANCH:-$BRANCH_DEFAULT}"
+  local branch="${AGENT_CONFIG_BRANCH:-$(detect_default_branch "$repo_dir")}"
+  local cron_expr
+  cron_expr="$(cron_expr_for_minutes "$minutes")"
 
   # Pull only if:
   # - on the expected branch
   # - working tree is clean (prevents surprises while editing)
   local cron_line
-  cron_line="*/${minutes} * * * * cd \"${repo_dir}\" && [ \"\$(git rev-parse --abbrev-ref HEAD 2>/dev/null)\" = \"${branch}\" ] && [ -z \"\$(git status --porcelain 2>/dev/null)\" ] && git pull --ff-only >/dev/null 2>&1 # ${CRON_TAG}"
+  cron_line="${cron_expr} cd \"${repo_dir}\" && [ \"\$(git rev-parse --abbrev-ref HEAD 2>/dev/null)\" = \"${branch}\" ] && [ -z \"\$(git status --porcelain 2>/dev/null)\" ] && git pull --ff-only >/dev/null 2>&1 # ${CRON_TAG}"
 
   local current
   current="$(crontab -l 2>/dev/null || true)"
