@@ -30,6 +30,19 @@ repo_root_if_inside() {
   return 1
 }
 
+in_agent_config_repo() {
+  local repo_dir="$1"
+  local root
+  root="$(git -C "$repo_dir" rev-parse --show-toplevel 2>/dev/null || true)"
+  if [ -z "$root" ]; then
+    return 1
+  fi
+  if [ -f "$root/scripts/bootstrap.sh" ] && [ -f "$root/scripts/tm" ]; then
+    return 0
+  fi
+  return 1
+}
+
 is_url_like() {
   case "$1" in
     http://*|https://*|git@*|ssh://*|*github.com*|*gitlab.com*|*bitbucket.org*) return 0 ;;
@@ -123,8 +136,10 @@ pick_repo() {
 
   local inside=""
   if inside="$(repo_root_if_inside)"; then
-    printf '%s\t%s' "$inside" "$branch"
-    return 0
+    if ! in_agent_config_repo "$inside"; then
+      printf '%s\t%s' "$inside" "$branch"
+      return 0
+    fi
   fi
 
   read -r -p "Repo path or GitHub URL: " input
