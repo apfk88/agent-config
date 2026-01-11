@@ -3,6 +3,13 @@ set -euo pipefail
 
 log() { printf '%s\n' "$*"; }
 err() { printf 'ERROR: %s\n' "$*" >&2; }
+usage() {
+  cat <<'USAGE'
+Usage:
+  tm new [path|url]    Create repo session (agent/server/bash)
+  tm attach            List tmux sessions and attach
+USAGE
+}
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || { err "Missing required command: $1"; exit 1; }
@@ -104,10 +111,56 @@ pick_repo() {
   exit 1
 }
 
-main() {
-  need_cmd tmux
-  need_cmd git
+attach_or_switch() {
+  local session="$1"
+  if [ -n "${TMUX-}" ]; then
+    tmux switch-client -t "$session"
+  else
+    tmux attach -t "$session"
+  fi
+}
 
+attach_session() {
+  local sessions
+  sessions="$(tmux list-sessions -F '#S' 2>/dev/null || true)"
+  if [ -z "$sessions" ]; then
+    err "No tmux sessions"
+    exit 1
+  fi
+
+  log "Sessions:"
+  local i=1
+  while IFS= read -r s; do
+    printf '  [%s] %s\n' "$i" "$s"
+    i=$((i + 1))
+  done <<<"$sessions"
+
+  local choice
+  read -r -p "Choose session #: " choice
+  if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+    err "Invalid choice"
+    exit 1
+  fi
+
+  local idx=1
+  local target=""
+  while IFS= read -r s; do
+    if [ "$idx" -eq "$choice" ]; then
+      target="$s"
+      break
+    fi
+    idx=$((idx + 1))
+  done <<<"$sessions"
+
+  if [ -z "$target" ]; then
+    err "Invalid choice"
+    exit 1
+  fi
+
+  attach_or_switch "$target"
+}
+
+new_session() {
   local repo_dir
   repo_dir="$(pick_repo "${1:-}")"
 
@@ -120,11 +173,7 @@ main() {
   session="$(basename "$repo_dir")"
 
   if tmux has-session -t "$session" 2>/dev/null; then
-    if [ -n "${TMUX-}" ]; then
-      tmux switch-client -t "$session"
-    else
-      tmux attach -t "$session"
-    fi
+    attach_or_switch "$session"
     return 0
   fi
 
@@ -132,11 +181,31 @@ main() {
   tmux new-window -t "$session":2 -n server -c "$repo_dir"
   tmux new-window -t "$session":3 -n bash -c "$repo_dir"
 
-  if [ -n "${TMUX-}" ]; then
-    tmux switch-client -t "$session"
-  else
-    tmux attach -t "$session"
-  fi
+  attach_or_switch "$session"
+}
+
+main() {
+  need_cmd tmux
+  need_cmd git
+
+  local cmd="${1:-new}"
+  case "$cmd" in
+    new)
+      shift
+      new_session "${1:-}"
+      ;;
+    attach)
+      attach_session
+      ;;
+    -h|--help|help)
+      usage
+      ;;
+    *)
+      err "Unknown command: $cmd"
+      usage
+      exit 1
+      ;;
+  esac
 }
 
 main "$@"
