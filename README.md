@@ -5,6 +5,7 @@ Shared coding-agent config; symlink targets. Defaults to Codex today; add others
 ## Layout
 - `codex/` Codex config (AGENTS, rules, skills).
 - `scripts/bootstrap.sh` setup + auto-pull.
+- `scripts/tm` tmux session helper.
 
 ## Bootstrap
 Prereqs: `gh` auth, `git`, `crontab`.
@@ -39,3 +40,13 @@ Disable auto-pull:
 ```sh
 crontab -l | grep -v "agent-config-autopull" | crontab -
 ```
+
+## Tmux helper
+Creates a session named after the repo (windows: agent, server, bash). If not in a repo, it prompts for a path or GitHub URL (clones if needed).
+
+Make it runnable anywhere:
+```sh
+mkdir -p ~/.local/bin
+ln -s "$PWD/scripts/tm" ~/.local/bin/tm
+```
+Ensure `~/.local/bin` is on `PATH`.
