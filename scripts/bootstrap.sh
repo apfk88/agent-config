@@ -18,6 +18,9 @@ AGENT_CONFIG_FILE_DEFAULT="config.toml"
 AGENT_CONFIG_LINK_DEFAULT="config.toml"
 AGENT_SKILLS_DIR_DEFAULT="skills"
 AGENT_SKILLS_LINK_DEFAULT="skills"
+TM_BIN_DIR_DEFAULT="$HOME/.local/bin"
+TM_LINK_DEFAULT="tm"
+TM_SOURCE_DEFAULT="scripts/tm"
 
 BRANCH_DEFAULT="main"
 PULL_EVERY_MINUTES_DEFAULT="60"
@@ -39,6 +42,27 @@ backup_if_exists() {
     mv "$path" "${path}.bak.${ts}"
     log "Backed up $path -> ${path}.bak.${ts}"
   fi
+}
+
+link_points_to() {
+  local link="$1"
+  local target="$2"
+  if [ -L "$link" ]; then
+    [ "$(readlink "$link")" = "$target" ]
+    return $?
+  fi
+  return 1
+}
+
+ensure_link() {
+  local target="$1"
+  local link="$2"
+  if link_points_to "$link" "$target"; then
+    log "Link ok: ${link}"
+    return 0
+  fi
+  backup_if_exists "$link"
+  ln -sfn "$target" "$link"
 }
 
 repo_root_if_inside() {
@@ -96,20 +120,12 @@ install_symlinks() {
 
   mkdir -p "$agent_dir"
 
-  backup_if_exists "${agent_dir}/${agent_link}"
+  ensure_link "${agent_path}/${agent_file}" "${agent_dir}/${agent_link}"
   if [ -n "$config_file" ]; then
-    backup_if_exists "${agent_dir}/${config_link}"
+    ensure_link "${agent_path}/${config_file}" "${agent_dir}/${config_link}"
   fi
   if [ -n "$skills_dir" ]; then
-    backup_if_exists "${agent_dir}/${skills_link}"
-  fi
-
-  ln -sfn "${agent_path}/${agent_file}" "${agent_dir}/${agent_link}"
-  if [ -n "$config_file" ]; then
-    ln -sfn "${agent_path}/${config_file}" "${agent_dir}/${config_link}"
-  fi
-  if [ -n "$skills_dir" ]; then
-    ln -sfn "${agent_path}/${skills_dir}" "${agent_dir}/${skills_link}"
+    ensure_link "${agent_path}/${skills_dir}" "${agent_dir}/${skills_link}"
   fi
 
   log "Symlinks set:"
@@ -120,6 +136,29 @@ install_symlinks() {
   if [ -n "$skills_dir" ]; then
     log "  ${agent_dir}/${skills_link} -> ${agent_path}/${skills_dir}"
   fi
+}
+
+install_tm_helper() {
+  local repo_dir="$1"
+  local tm_link="${TM_LINK:-$TM_LINK_DEFAULT}"
+  local bin_dir="${TM_BIN_DIR:-$TM_BIN_DIR_DEFAULT}"
+  local tm_source="${TM_SOURCE:-$TM_SOURCE_DEFAULT}"
+
+  if [ -z "$tm_link" ]; then
+    return 0
+  fi
+
+  local tm_path="$tm_source"
+  if [ ! -f "$tm_path" ]; then
+    tm_path="${repo_dir}/${tm_source}"
+  fi
+  [ -f "$tm_path" ] || { err "Expected tm script: ${tm_path}"; exit 1; }
+
+  mkdir -p "$bin_dir"
+  ensure_link "$tm_path" "${bin_dir}/${tm_link}"
+
+  log "tm helper set:"
+  log "  ${bin_dir}/${tm_link} -> ${tm_path}"
 }
 
 install_cron_autopull() {
@@ -153,6 +192,7 @@ main() {
   need_cmd grep
   need_cmd mv
   need_cmd date
+  need_cmd readlink
 
   local repo_dir="${AGENT_CONFIG_REPO_DIR:-$REPO_DIR_DEFAULT}"
 
@@ -166,6 +206,7 @@ main() {
   ensure_repo_present "$repo_dir"
   validate_layout "$repo_dir"
   install_symlinks "$repo_dir"
+  install_tm_helper "$repo_dir"
   install_cron_autopull "$repo_dir"
 
   log "Done."
