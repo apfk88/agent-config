@@ -50,7 +50,8 @@ crontab -l | grep -v "agent-config-autopull" | crontab -
 `tm new` creates a session named after the repo (windows: agent-0, agent-1, server, bash, tips). If not in a repo, it prompts for a path or GitHub URL (clones if needed).  
 Branch shorthand: `tm new org/repo#branch` or `tm new /path/to/repo branch`.
 `tm attach` lists sessions and asks which to attach.  
-`tm list` / `tm kill` / `tm rename` for session management.
+`tm list` / `tm kill` / `tm rename` for session management.  
+Tips window opens `~/dev/agent-config/tips.md` if present (otherwise `./tips.md`).
 
 Make it runnable anywhere:
 ```sh
