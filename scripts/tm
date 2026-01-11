@@ -68,10 +68,10 @@ clone_repo() {
 
   if [ -n "$branch" ]; then
     log "Cloning ${url} (branch ${branch}) -> ${dest}"
-    git clone --branch "$branch" --single-branch "$url" "$dest"
+    git clone --branch "$branch" --single-branch "$url" "$dest" >/dev/null
   else
     log "Cloning ${url} -> ${dest}"
-    git clone "$url" "$dest"
+    git clone "$url" "$dest" >/dev/null
   fi
   printf '%s' "$dest"
 }
