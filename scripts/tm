@@ -366,6 +366,7 @@ new_session() {
   tmux new-window -t "$session":2 -n server -c "$repo_dir"
   tmux new-window -t "$session":3 -n bash -c "$repo_dir"
   tmux new-window -t "$session":4 -n tips -c "$repo_dir" "nano \"$tips_path\""
+  tmux select-window -t "$session":0
 
   attach_or_switch "$session"
 }
