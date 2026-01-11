@@ -354,11 +354,16 @@ new_session() {
   fi
 
   local default_tips="${AGENT_CONFIG_REPO_DIR:-$HOME/dev/agent-config}/tips.md"
-  local tips_path="$default_tips"
-  if [ -f "$repo_dir/tips.md" ]; then
+  local codex_tips="$HOME/.codex/tips.md"
+  local tips_path=""
+  if [ -f "$default_tips" ]; then
+    tips_path="$default_tips"
+  elif [ -f "$codex_tips" ]; then
+    tips_path="$codex_tips"
+  elif [ -f "$repo_dir/tips.md" ]; then
     tips_path="$repo_dir/tips.md"
-  elif [ ! -f "$default_tips" ]; then
-    tips_path="$repo_dir/tips.md"
+  else
+    tips_path="$default_tips"
   fi
 
   tmux new-session -d -s "$session" -c "$repo_dir" -n agent-0
