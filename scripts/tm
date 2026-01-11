@@ -102,8 +102,8 @@ pick_repo() {
     fi
     if is_url_like "$input"; then
       local base
-      read -r -p "Clone into (default: $HOME/Dev): " base
-      base="${base:-$HOME/Dev}"
+      read -r -p "Clone into (default: $HOME/dev): " base
+      base="${base:-$HOME/dev}"
       printf '%s\t%s' "$(clone_repo "$input" "$base" "$branch")" "$branch"
       return 0
     fi
@@ -130,8 +130,8 @@ pick_repo() {
 
   if is_url_like "$input"; then
     local base
-    read -r -p "Clone into (default: $HOME/Dev): " base
-    base="${base:-$HOME/Dev}"
+    read -r -p "Clone into (default: $HOME/dev): " base
+    base="${base:-$HOME/dev}"
     printf '%s\t%s' "$(clone_repo "$input" "$base" "$branch")" "$branch"
     return 0
   fi

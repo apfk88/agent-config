@@ -21,6 +21,7 @@ AGENT_SKILLS_LINK_DEFAULT="skills"
 TM_BIN_DIR_DEFAULT="$HOME/.local/bin"
 TM_LINK_DEFAULT="tm"
 TM_SOURCE_DEFAULT="scripts/tm"
+DEV_DIR_DEFAULT="$HOME/dev"
 
 BRANCH_DEFAULT="main"
 PULL_EVERY_MINUTES_DEFAULT="60"
@@ -208,6 +209,11 @@ main() {
   install_symlinks "$repo_dir"
   install_tm_helper "$repo_dir"
   install_cron_autopull "$repo_dir"
+
+  local dev_dir="${DEV_DIR:-$DEV_DIR_DEFAULT}"
+  mkdir -p "$dev_dir"
+  cd "$dev_dir"
+  log "Now in ${dev_dir}"
 
   log "Done."
 }
