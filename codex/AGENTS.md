@@ -5,6 +5,7 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 ## Agent Protocol
 - Contact: Alex Kvamme (@kvamme (X), @apfk88 (Github)).
 - “Make a note” => edit AGENTS.md (shortcut; not a blocker). Ignore `CLAUDE.md`.
+- “Add a tip” => append to `tips.md` in agent-config repo and commit + push.
 - Keep files <~500 LOC; split/refactor as needed.
 - Prefer end-to-end verify; if blocked, say what’s missing.
 - New deps: quick health check (recent releases/commits, adoption).

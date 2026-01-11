@@ -21,6 +21,7 @@ Defaults (Codex):
 - `~/.codex/agents.md` -> `codex/AGENTS.md`
 - `~/.codex/config.toml` -> `codex/config.toml`
 - `~/.codex/skills` -> `codex/skills`
+- `~/.codex/tips.md` -> `tips.md`
 - `~/.local/bin/tm` -> `scripts/tm`
 - cron: `git pull --ff-only` every 60m (expected branch + clean tree)
 
@@ -32,6 +33,7 @@ Env overrides:
 - `AGENT_FILE` / `AGENT_LINK` (default `AGENTS.md` / `agents.md`)
 - `AGENT_CONFIG_FILE` / `AGENT_CONFIG_LINK` (default `config.toml` / `config.toml`, set `AGENT_CONFIG_FILE=""` to skip)
 - `AGENT_SKILLS_DIR` / `AGENT_SKILLS_LINK` (default `skills` / `skills`, set `AGENT_SKILLS_DIR=""` to skip)
+- `TIPS_FILE` / `TIPS_LINK` (default `tips.md` / `tips.md`, set `TIPS_FILE=""` to skip)
 - `TM_BIN_DIR` (default `~/.local/bin`)
 - `TM_LINK` (default `tm`, set `TM_LINK=""` to skip)
 - `TM_SOURCE` (default `scripts/tm`)

@@ -18,6 +18,8 @@ AGENT_CONFIG_FILE_DEFAULT="config.toml"
 AGENT_CONFIG_LINK_DEFAULT="config.toml"
 AGENT_SKILLS_DIR_DEFAULT="skills"
 AGENT_SKILLS_LINK_DEFAULT="skills"
+TIPS_FILE_DEFAULT="tips.md"
+TIPS_LINK_DEFAULT="tips.md"
 TM_BIN_DIR_DEFAULT="$HOME/.local/bin"
 TM_LINK_DEFAULT="tm"
 TM_SOURCE_DEFAULT="scripts/tm"
@@ -139,6 +141,30 @@ install_symlinks() {
   fi
 }
 
+install_tips_link() {
+  local repo_dir="$1"
+  local agent_dir="${AGENT_DIR:-${CODEX_DIR:-$AGENT_DIR_DEFAULT}}"
+  local tips_file="${TIPS_FILE:-$TIPS_FILE_DEFAULT}"
+  local tips_link="${TIPS_LINK:-$TIPS_LINK_DEFAULT}"
+
+  if [ -z "$tips_file" ] || [ -z "$tips_link" ]; then
+    return 0
+  fi
+
+  local tips_path="$tips_file"
+  if [ ! -f "$tips_path" ]; then
+    tips_path="${repo_dir}/${tips_file}"
+  fi
+  [ -f "$tips_path" ] || { err "Expected tips file: ${tips_path}"; exit 1; }
+  tips_path="$(cd "$(dirname "$tips_path")" && pwd -P)/$(basename "$tips_path")"
+
+  mkdir -p "$agent_dir"
+  ensure_link "$tips_path" "${agent_dir}/${tips_link}"
+
+  log "Tips link set:"
+  log "  ${agent_dir}/${tips_link} -> ${tips_path}"
+}
+
 install_tm_helper() {
   local repo_dir="$1"
   local tm_link="${TM_LINK:-$TM_LINK_DEFAULT}"
@@ -239,6 +265,7 @@ main() {
   ensure_repo_present "$repo_dir"
   validate_layout "$repo_dir"
   install_symlinks "$repo_dir"
+  install_tips_link "$repo_dir"
   install_tm_helper "$repo_dir"
   install_cron_autopull "$repo_dir"
 
