@@ -12,6 +12,7 @@ Usage:
   tm list              List tmux sessions
   tm kill [name]       Pick a tmux session to kill (or pass name)
   tm rename [new]      Rename current session (or pick)
+  tm exit              Detach from current tmux session
   tm help              Show this help
 USAGE
 }
@@ -388,6 +389,14 @@ main() {
       ;;
     attach)
       attach_session
+      ;;
+    exit)
+      if [ -n "${TMUX-}" ]; then
+        tmux detach-client
+      else
+        err "Not in tmux"
+        exit 1
+      fi
       ;;
     list)
       list_sessions
