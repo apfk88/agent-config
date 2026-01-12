@@ -20,6 +20,8 @@ AGENT_SKILLS_DIR_DEFAULT="skills"
 AGENT_SKILLS_LINK_DEFAULT="skills"
 TIPS_FILE_DEFAULT="tips.md"
 TIPS_LINK_DEFAULT="tips.md"
+TMUX_CONF_SOURCE_DEFAULT="tmux.conf"
+TMUX_CONF_LINK_DEFAULT="$HOME/.tmux.conf"
 TM_BIN_DIR_DEFAULT="$HOME/.local/bin"
 TM_LINK_DEFAULT="tm"
 TM_SOURCE_DEFAULT="scripts/tm"
@@ -165,6 +167,28 @@ install_tips_link() {
   log "  ${agent_dir}/${tips_link} -> ${tips_path}"
 }
 
+install_tmux_conf() {
+  local repo_dir="$1"
+  local tmux_source="${TMUX_CONF_SOURCE:-$TMUX_CONF_SOURCE_DEFAULT}"
+  local tmux_link="${TMUX_CONF_LINK:-$TMUX_CONF_LINK_DEFAULT}"
+
+  if [ -z "$tmux_source" ] || [ -z "$tmux_link" ]; then
+    return 0
+  fi
+
+  local tmux_path="$tmux_source"
+  if [ ! -f "$tmux_path" ]; then
+    tmux_path="${repo_dir}/${tmux_source}"
+  fi
+  [ -f "$tmux_path" ] || { err "Expected tmux conf: ${tmux_path}"; exit 1; }
+  tmux_path="$(cd "$(dirname "$tmux_path")" && pwd -P)/$(basename "$tmux_path")"
+
+  ensure_link "$tmux_path" "$tmux_link"
+
+  log "tmux conf set:"
+  log "  ${tmux_link} -> ${tmux_path}"
+}
+
 install_tm_helper() {
   local repo_dir="$1"
   local tm_link="${TM_LINK:-$TM_LINK_DEFAULT}"
@@ -266,6 +290,7 @@ main() {
   validate_layout "$repo_dir"
   install_symlinks "$repo_dir"
   install_tips_link "$repo_dir"
+  install_tmux_conf "$repo_dir"
   install_tm_helper "$repo_dir"
   install_cron_autopull "$repo_dir"
 

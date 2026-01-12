@@ -6,6 +6,7 @@ Shared coding-agent config; symlink targets. Defaults to Codex today; add others
 - `codex/` Codex config (AGENTS, rules, skills).
 - `scripts/bootstrap.sh` setup + auto-pull.
 - `scripts/tm` tmux session helper.
+- `tmux.conf` tmux config.
 
 ## Bootstrap
 Prereqs: `gh` auth, `git`, `crontab`.
@@ -22,6 +23,7 @@ Defaults (Codex):
 - `~/.codex/config.toml` -> `codex/config.toml`
 - `~/.codex/skills` -> `codex/skills`
 - `~/.codex/tips.md` -> `tips.md`
+- `~/.tmux.conf` -> `tmux.conf`
 - `~/.local/bin/tm` -> `scripts/tm`
 - cron: `git pull --ff-only` every 60m (expected branch + clean tree)
 
@@ -34,6 +36,8 @@ Env overrides:
 - `AGENT_CONFIG_FILE` / `AGENT_CONFIG_LINK` (default `config.toml` / `config.toml`, set `AGENT_CONFIG_FILE=""` to skip)
 - `AGENT_SKILLS_DIR` / `AGENT_SKILLS_LINK` (default `skills` / `skills`, set `AGENT_SKILLS_DIR=""` to skip)
 - `TIPS_FILE` / `TIPS_LINK` (default `tips.md` / `tips.md`, set `TIPS_FILE=""` to skip)
+- `TMUX_CONF_SOURCE` (default `tmux.conf`, set `TMUX_CONF_SOURCE=""` to skip)
+- `TMUX_CONF_LINK` (default `~/.tmux.conf`, set `TMUX_CONF_LINK=""` to skip)
 - `TM_BIN_DIR` (default `~/.local/bin`)
 - `TM_LINK` (default `tm`, set `TM_LINK=""` to skip)
 - `TM_SOURCE` (default `scripts/tm`)
