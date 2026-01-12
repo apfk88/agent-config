@@ -391,6 +391,7 @@ new_session() {
   tmux set-option -t "$session" window-status-format "#[fg=brightwhite,bg=colour237] #I:#W #[default]"
   tmux set-option -t "$session" window-status-current-style "fg=black,bg=colour10,bold"
   tmux set-option -t "$session" window-status-current-format " #I:#W "
+  tmux set-option -t "$session" mouse on
   tmux select-window -t "$session":0
 
   attach_or_switch "$session"
