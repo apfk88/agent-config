@@ -1,38 +1,20 @@
 model = "gpt-5.2-codex"
 model_reasoning_effort = "high"
 
-[projects."/Users/ak/Dev/"]
-trust_level = "trusted"
-
-[projects."/Users/ak/Dev/personal/BPM"]
-trust_level = "trusted"
-
-[projects."/Users/ak/Dev/quiet/vibes/codex-ttt"]
-trust_level = "trusted"
-
-[projects."/Users/ak/Dev/quiet/vibes"]
-trust_level = "trusted"
-
 # No approval prompts
 approval_policy = "never"
 
-# Full access sandbox (includes network without approval prompts)
-sandbox_mode = "danger-full-access"
+# Workspace-only access
+sandbox_mode = "workspace-write"
 
-[projects."/Users/ak/Dev/quiet/command"]
-trust_level = "trusted"
+[sandbox_workspace_write]
+network_access = true
 
-[notice]
-hide_full_access_warning = true
-
-[notice.model_migrations]
-"gpt-5.2" = "gpt-5.2-codex"
-
-tool_output_token_limit = "25000"
+tool_output_token_limit = 25000
 # Leave room for native compaction near the 272–273k context window.
 # Formula: 273000 - (tool_output_token_limit + 15000)
 # With tool_output_token_limit=25000 ⇒ 273000 - (25000 + 15000) = 233000
-model_auto_compact_token_limit = "233000"
+model_auto_compact_token_limit = 233000
 
 [features]
 ghost_commit = false
@@ -42,5 +24,14 @@ web_search_request = true
 skills = true
 shell_snapshot = true
 
-[sandbox_workspace_write]
-network_access = true
+[projects."/Users/ak/Dev/"]
+trust_level = "trusted"
+
+[projects."/Users/ak/Dev/personal/BPM"]
+trust_level = "trusted"
+
+[projects."/Users/ak/Dev/quiet/command"]
+trust_level = "trusted"
+
+[notice]
+hide_full_access_warning = true
