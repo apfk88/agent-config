@@ -1,8 +1,8 @@
 # Profile-based config (comparison copy).
 # Root is minimal so profiles fully control behavior.
-profile = "daily-driver"
+profile = "ak-main"
 
-[profiles.daily-driver]
+[profiles.ak-main]
 model = "gpt-5.2-codex"
 model_reasoning_effort = "high"
 
@@ -13,7 +13,7 @@ approval_policy = "never"
 sandbox_mode = "workspace-write"
 
 # Note: this block only applies when sandbox_mode = "workspace-write".
-[profiles.daily-driver.sandbox_workspace_write]
+[profiles.ak-main.sandbox_workspace_write]
 network_access = true
 
 tool_output_token_limit = 25000
@@ -22,7 +22,7 @@ tool_output_token_limit = 25000
 # With tool_output_token_limit=25000 ⇒ 273000 - (25000 + 15000) = 233000
 model_auto_compact_token_limit = 233000
 
-[profiles.daily-driver.features]
+[profiles.ak-main.features]
 ghost_commit = false
 unified_exec = true
 apply_patch_freeform = true
@@ -30,17 +30,17 @@ web_search_request = true
 skills = true
 shell_snapshot = true
 
-[profiles.daily-driver.projects."/Users/ak/Dev/"]
-trust_level = "trusted"
-
-[profiles.daily-driver.projects."/Users/ak/Dev/personal/BPM"]
-trust_level = "trusted"
-
-[profiles.daily-driver.projects."/Users/ak/Dev/quiet/command"]
-trust_level = "trusted"
-
-[profiles.daily-driver.notice]
+[profiles.ak-main.notice]
 hide_full_access_warning = true
 
-[profiles.factory-default]
+[profiles.default]
 # Intentionally empty: falls back to built-in defaults.
+
+[projects."/Users/ak/Dev/"]
+trust_level = "trusted"
+
+[projects."/Users/ak/Dev/personal/BPM"]
+trust_level = "trusted"
+
+[projects."/Users/ak/Dev/quiet/command"]
+trust_level = "trusted"
