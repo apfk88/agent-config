@@ -1,0 +1,46 @@
+# Profile-based config (comparison copy).
+# Root is minimal so profiles fully control behavior.
+profile = "daily-driver"
+
+[profiles.daily-driver]
+model = "gpt-5.2-codex"
+model_reasoning_effort = "high"
+
+# No approval prompts
+approval_policy = "never"
+
+# Workspace-only access
+sandbox_mode = "workspace-write"
+
+# Note: this block only applies when sandbox_mode = "workspace-write".
+[profiles.daily-driver.sandbox_workspace_write]
+network_access = true
+
+tool_output_token_limit = 25000
+# Leave room for native compaction near the 272–273k context window.
+# Formula: 273000 - (tool_output_token_limit + 15000)
+# With tool_output_token_limit=25000 ⇒ 273000 - (25000 + 15000) = 233000
+model_auto_compact_token_limit = 233000
+
+[profiles.daily-driver.features]
+ghost_commit = false
+unified_exec = true
+apply_patch_freeform = true
+web_search_request = true
+skills = true
+shell_snapshot = true
+
+[profiles.daily-driver.projects."/Users/ak/Dev/"]
+trust_level = "trusted"
+
+[profiles.daily-driver.projects."/Users/ak/Dev/personal/BPM"]
+trust_level = "trusted"
+
+[profiles.daily-driver.projects."/Users/ak/Dev/quiet/command"]
+trust_level = "trusted"
+
+[profiles.daily-driver.notice]
+hide_full_access_warning = true
+
+[profiles.factory-default]
+# Intentionally empty: falls back to built-in defaults.
