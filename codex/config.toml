@@ -7,6 +7,7 @@ approval_policy = "never"
 # Workspace-only access
 sandbox_mode = "workspace-write"
 
+# Note: this block only applies when sandbox_mode = "workspace-write".
 [sandbox_workspace_write]
 network_access = true
 
