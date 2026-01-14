@@ -366,24 +366,10 @@ new_session() {
     return 0
   fi
 
-  local default_tips="${AGENT_CONFIG_REPO_DIR:-$HOME/dev/agent-config}/tips.md"
-  local codex_tips="$HOME/.codex/tips.md"
-  local tips_path=""
-  if [ -f "$default_tips" ]; then
-    tips_path="$default_tips"
-  elif [ -f "$codex_tips" ]; then
-    tips_path="$codex_tips"
-  elif [ -f "$repo_dir/tips.md" ]; then
-    tips_path="$repo_dir/tips.md"
-  else
-    tips_path="$default_tips"
-  fi
-
   tmux new-session -d -s "$session" -c "$repo_dir" -n agent-0
   tmux new-window -t "$session":1 -n agent-1 -c "$repo_dir"
   tmux new-window -t "$session":2 -n server -c "$repo_dir"
   tmux new-window -t "$session":3 -n bash -c "$repo_dir"
-  tmux new-window -t "$session":4 -n tips -c "$repo_dir" "nano \"$tips_path\""
   tmux set-option -t "$session" status-position top
   tmux set-option -t "$session" status-style "fg=white,bg=black"
   tmux set-option -t "$session" status-left "#[fg=black,bg=colour11,bold] #S #[default] "
