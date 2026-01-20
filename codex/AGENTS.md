@@ -63,7 +63,7 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 
 ## Browser Automation
 
-Use `agent-browser` for web automation. Run `agent-browser --help` for all commands.
+Whenever you are working on a web application, proactively use `agent-browser` to inspect, test, and debug. Run `agent-browser --help` for all commands.
 
 Core workflow:
 1. `agent-browser open <url>` - Navigate to page
@@ -71,6 +71,7 @@ Core workflow:
 3. `agent-browser click @e1` / `fill @e2 "text"` - Interact using refs
 4. Re-snapshot after page changes
 
-Install (if missing):
+Install:
 1. `npm install -g agent-browser`
 2. `agent-browser install`
+3. Routinely update: `npm install -g agent-browser`

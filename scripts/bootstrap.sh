@@ -30,6 +30,7 @@ DEV_DIR_DEFAULT="$HOME/dev"
 BRANCH_DEFAULT="main"
 PULL_EVERY_MINUTES_DEFAULT="60"
 CRON_TAG="agent-config-autopull"
+PULL_LOG_PATH_DEFAULT="$HOME/.cache/agent-config/autopull.log"
 # ------------------------------------------
 
 log() { printf '%s\n' "$*"; }
@@ -37,6 +38,23 @@ err() { printf 'ERROR: %s\n' "$*" >&2; }
 
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || { err "Missing required command: $1"; exit 1; }
+}
+
+warn_if_cron_inactive() {
+  if [ "$(uname -s)" != "Linux" ]; then
+    return 0
+  fi
+  if ! command -v systemctl >/dev/null 2>&1; then
+    return 0
+  fi
+  if systemctl is-active --quiet cron.service 2>/dev/null; then
+    return 0
+  fi
+  if systemctl is-active --quiet crond.service 2>/dev/null; then
+    return 0
+  fi
+  log "WARN: cron service not active (cron.service/crond.service). Auto-pull may not run."
+  log "      Enable with: sudo systemctl enable --now cron  # or crond"
 }
 
 backup_if_exists() {
@@ -73,6 +91,18 @@ ensure_link() {
 repo_root_if_inside() {
   if git rev-parse --show-toplevel >/dev/null 2>&1; then
     git rev-parse --show-toplevel
+    return 0
+  fi
+  return 1
+}
+
+script_repo_root() {
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+  local root
+  root="$(cd "${script_dir}/.." && pwd -P)"
+  if [ -d "${root}/.git" ]; then
+    printf '%s' "$root"
     return 0
   fi
   return 1
@@ -246,6 +276,13 @@ install_cron_autopull() {
   local repo_dir="$1"
   local minutes="${PULL_EVERY_MINUTES:-$PULL_EVERY_MINUTES_DEFAULT}"
   local branch="${AGENT_CONFIG_BRANCH:-$(detect_default_branch "$repo_dir")}"
+  local autopull_script="${repo_dir}/scripts/autopull.sh"
+  local git_bin
+  git_bin="$(command -v git)"
+  local bash_bin
+  bash_bin="$(command -v bash)"
+  local cron_path="${AUTOPULL_PATH:-$PATH}"
+  local log_path="${PULL_LOG_PATH-$PULL_LOG_PATH_DEFAULT}"
   local cron_expr
   cron_expr="$(cron_expr_for_minutes "$minutes")"
 
@@ -253,7 +290,12 @@ install_cron_autopull() {
   # - on the expected branch
   # - working tree is clean (prevents surprises while editing)
   local cron_line
-  cron_line="${cron_expr} cd \"${repo_dir}\" && [ \"\$(git rev-parse --abbrev-ref HEAD 2>/dev/null)\" = \"${branch}\" ] && [ -z \"\$(git status --porcelain 2>/dev/null)\" ] && git pull --ff-only >/dev/null 2>&1 # ${CRON_TAG}"
+  [ -f "$autopull_script" ] || { err "Expected autopull script: ${autopull_script}"; exit 1; }
+  if [ -n "$log_path" ]; then
+    cron_line="${cron_expr} PATH=\"${cron_path}\" GIT_BIN=\"${git_bin}\" PULL_LOG_PATH=\"${log_path}\" ${bash_bin} \"${autopull_script}\" \"${repo_dir}\" \"${branch}\" # ${CRON_TAG}"
+  else
+    cron_line="${cron_expr} PATH=\"${cron_path}\" GIT_BIN=\"${git_bin}\" ${bash_bin} \"${autopull_script}\" \"${repo_dir}\" \"${branch}\" # ${CRON_TAG}"
+  fi
 
   local current
   current="$(crontab -l 2>/dev/null || true)"
@@ -265,11 +307,16 @@ install_cron_autopull() {
 
   log "Cron installed/updated:"
   log "  ${cron_line}"
+  if [ -n "$log_path" ]; then
+    log "  Log file: ${log_path}"
+  fi
+  warn_if_cron_inactive
 }
 
 main() {
   need_cmd gh
   need_cmd git
+  need_cmd bash
   need_cmd ln
   need_cmd crontab
   need_cmd grep
@@ -279,9 +326,16 @@ main() {
 
   local repo_dir="${AGENT_CONFIG_REPO_DIR:-$REPO_DIR_DEFAULT}"
 
-  # If running from inside the repo, prefer that location.
+  # If running from the repo's scripts/, prefer that location.
+  local script_root=""
+  if script_root="$(script_repo_root)"; then
+    repo_dir="$script_root"
+    log "Detected repo root from script path: ${repo_dir}"
+  fi
+
+  # If running from inside a repo and no script root, prefer that location.
   local inside_root=""
-  if inside_root="$(repo_root_if_inside)"; then
+  if [ -z "$script_root" ] && inside_root="$(repo_root_if_inside)"; then
     repo_dir="$inside_root"
     log "Detected repo root from current directory: ${repo_dir}"
   fi

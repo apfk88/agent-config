@@ -5,6 +5,7 @@ Shared coding-agent config; symlink targets. Defaults to Codex today; add others
 ## Layout
 - `codex/` Codex config (AGENTS, rules, skills).
 - `scripts/bootstrap.sh` setup + auto-pull.
+- `scripts/autopull.sh` cron runner (branch + clean-tree guard).
 - `scripts/tm` tmux session helper.
 - `tmux.conf` tmux config.
 
@@ -25,7 +26,7 @@ Defaults (Codex):
 - `~/.codex/tips.md` -> `tips.md`
 - `~/.tmux.conf` -> `tmux.conf`
 - `~/.local/bin/tm` -> `scripts/tm`
-- cron: `git pull --ff-only` every 60m (expected branch + clean tree)
+- cron: `scripts/autopull.sh` every 60m (expected branch + clean tree; logs to `~/.cache/agent-config/autopull.log`)
 
 Env overrides:
 - `AGENT_CONFIG_REPO_DIR` (default `~/dev/agent-config`)
@@ -43,14 +44,19 @@ Env overrides:
 - `TM_SOURCE` (default `scripts/tm`)
 - `AGENT_CONFIG_BRANCH` (default `main`)
 - `PULL_EVERY_MINUTES` (default `60`)
+- `PULL_LOG_PATH` (default `~/.cache/agent-config/autopull.log`, set empty to disable)
+- `AUTOPULL_PATH` (defaults to current `PATH` at install time)
 
 Other agents: set `AGENT_SUBDIR` + `AGENT_DIR` (and file/skills names if they differ).
 Bootstrap is safe to re-run; it only backs up when links point elsewhere.
+Tip: running `scripts/bootstrap.sh` by full path uses that repo (ignores current directory).
 
 Disable auto-pull:
 ```sh
 crontab -l | grep -v "agent-config-autopull" | crontab -
 ```
+
+Linux note: ensure cron service is active (`cron` or `crond`), or auto-pull won't run.
 
 ## Tmux helper
 `tm new` creates a session named after the repo (windows: agent-0, agent-1, server, bash). If not in a repo, it prompts for a path or GitHub URL (clones if needed).  
