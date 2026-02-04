@@ -11,6 +11,9 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - New deps: quick health check (recent releases/commits, adoption).
 - Web: search early; quote exact errors; prefer 2025–2026 sources
 - Use Codex background for long jobs
+- Team Config: prefer repo `.codex/` (layered over `~/.codex`) for shared rules/skills/config
+- Custom prompts deprecated; use skills for reusable workflows
+- Optional: `requirements.toml` to enforce sandbox/approvals when needed
 
 ## Git
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.
