@@ -14,6 +14,8 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - Team Config: prefer repo `.codex/` (layered over `~/.codex`) for shared rules/skills/config
 - Custom prompts deprecated; use skills for reusable workflows
 - Optional: `requirements.toml` to enforce sandbox/approvals when needed
+- Model default: `gpt-5.3-codex` for ChatGPT auth; API-key flows pin `gpt-5.2-codex` until 5.3 API rollout
+- Config debugging: use `/debug-config` to inspect effective layered settings
 
 ## Git
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.
