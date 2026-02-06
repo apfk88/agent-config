@@ -29,6 +29,9 @@ apply_patch_freeform = true
 skills = true
 shell_snapshot = true
 
+[beta]
+rmcp = true
+
 [notice]
 hide_full_access_warning = true
 
