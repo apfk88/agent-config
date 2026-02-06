@@ -4,6 +4,7 @@ Shared coding-agent config; symlink targets. Defaults to Codex today; add others
 
 ## Layout
 - `codex/` Codex config (AGENTS, rules, skills).
+- `codex/vercel.toml` Shared Vercel team/project IDs for quick CLI lookup/deploy flows.
 - `scripts/bootstrap.sh` setup + auto-pull.
 - `scripts/autopull.sh` cron runner (branch + clean-tree guard).
 - `scripts/tm` tmux session helper.

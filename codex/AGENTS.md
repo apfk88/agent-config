@@ -21,7 +21,10 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.
 - For new projects, init git.
 - Commit formatting: For tracked files run `git commit -m "<scoped message>" -- path/to/file1 path/to/file2`. For brand-new files, use the one-liner `git restore --staged :/ && git add "path/to/file1" "path/to/file2" && git commit -m "<scoped message>" -- path/to/file1 path/to/file2`
-- Safe by default: `git status/diff/log`. Push only when user asks.
+- Safe by default: `git status/diff/log`.
+- For app changes, run the project build before committing when a build command exists. If blocked, state what is missing.
+- On non-`master` branches, push every commit (`git push`) unless the user explicitly asks for local-only commits.
+- On `master`, ask once per session whether to push commits as they are created; follow that answer for the rest of the session without re-asking.
 - Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
 - Don’t delete/rename unexpected stuff; stop + ask.
 - No repo-wide S/R scripts; keep edits small/reviewable.
@@ -40,6 +43,7 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - TypeScript: keep files small; follow existing patterns.
 - Assume any web app will be deployed in Vercel
 - Make sure the app builds (`npm build`) before pushing or deploying
+- Keep Vercel IDs in-repo at `codex/vercel.toml` (`team_id`, `project_id`, optional project aliases) so CLI lookup/deploy steps are fast and repeatable.
 - Use default Vercel stack when possible: Neon Postgres, Vercel Blob, Vercel Edge Config
 - Use Clerk for auth
 

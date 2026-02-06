@@ -1,0 +1,16 @@
+# Vercel lookup cache for this repo.
+# Keep IDs current so agents can run quick `vercel`/`vc` CLI lookups and deploy commands.
+#
+# team_id: Vercel team/org id (starts with `team_`)
+# project_id: Vercel project id (starts with `prj_`)
+
+[defaults]
+team_id = ""
+project_id = ""
+
+# Optional aliases for multi-project repos.
+# [projects.marketing-site]
+# team_id = "team_xxxxxxxxxxxxxxxxxx"
+# project_id = "prj_xxxxxxxxxxxxxxxxxx"
+# cwd = "apps/marketing"
+# production_url = "https://example.com"
