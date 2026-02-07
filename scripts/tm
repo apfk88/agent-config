@@ -6,11 +6,11 @@ err() { printf 'ERROR: %s\n' "$*" >&2; }
 usage() {
   cat <<'USAGE'
 Usage:
-  tm new [path|url] [branch]    Create repo session (agent-0/agent-1/server/bash)
+  tm new [path|url|name] [branch]    Create repo session (agent-0/agent-1/server/bash)
   tm new <slug>#<branch>        Shorthand for repo + branch
   tm attach            List tmux sessions and attach
   tm list              List tmux sessions
-  tm killall           Kill all tmux sessions
+  tm killall [--yes]   Kill all tmux sessions (asks confirmation unless --yes)
   tm kill [name]       Pick a tmux session to kill (or pass name)
   tm rename [new]      Rename current session (or pick)
   tm exit              Detach from current tmux session
@@ -58,6 +58,90 @@ repo_name_from() {
   input="${input##*/}"
   input="${input%.git}"
   printf '%s' "$input"
+}
+
+expand_path() {
+  local input="$1"
+  case "$input" in
+    "~") printf '%s' "$HOME" ;;
+    "~/"*) printf '%s/%s' "$HOME" "${input#~/}" ;;
+    *) printf '%s' "$input" ;;
+  esac
+}
+
+is_local_path_hint() {
+  case "$1" in
+    ./*|../*|/*|~/*|*/*/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+confirm_yes() {
+  local prompt="$1"
+  local answer=""
+
+  if [ -t 0 ]; then
+    read -r -p "$prompt [y/N]: " answer
+  else
+    printf '%s [y/N]: ' "$prompt" >&2
+    if ! read -r answer; then
+      return 1
+    fi
+  fi
+
+  case "$answer" in
+    y|Y|yes|YES|Yes) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+create_repo() {
+  local dest="$1"
+  local branch="${2:-}"
+
+  mkdir -p "$dest"
+
+  if [ -n "$branch" ]; then
+    if ! git -C "$dest" init -b "$branch" >/dev/null 2>&1; then
+      git -C "$dest" init >/dev/null
+      git -C "$dest" checkout -b "$branch" >/dev/null
+    fi
+  else
+    git -C "$dest" init >/dev/null
+  fi
+
+  printf '%s' "$(cd "$dest" && pwd -P)"
+}
+
+resolve_new_repo_path() {
+  local input="$1"
+  local dev_dir="$2"
+
+  if is_local_path_hint "$input"; then
+    printf '%s' "$(expand_path "$input")"
+  else
+    printf '%s/%s' "$dev_dir" "$input"
+  fi
+}
+
+create_repo_from_input() {
+  local input="$1"
+  local dev_dir="$2"
+  local branch="$3"
+  local repo_path
+
+  repo_path="$(resolve_new_repo_path "$input" "$dev_dir")"
+  if [ -e "$repo_path" ]; then
+    err "Path exists and is not a directory: $repo_path"
+    exit 1
+  fi
+  if confirm_yes "Create new git repo at $repo_path?"; then
+    printf '%s\t%s' "$(create_repo "$repo_path" "$branch")" "$branch"
+    return 0
+  fi
+
+  err "Not a repo path or URL: $input"
+  exit 1
 }
 
 clone_repo() {
@@ -125,6 +209,10 @@ pick_repo() {
       printf '%s\t%s' "$(cd "$input" && pwd -P)" "$branch"
       return 0
     fi
+    if is_local_path_hint "$input"; then
+      create_repo_from_input "$input" "$dev_dir" "$branch"
+      return 0
+    fi
     if is_url_like "$input"; then
       local base
       read -r -p "Clone into (default: $HOME/dev): " base
@@ -132,8 +220,8 @@ pick_repo() {
       printf '%s\t%s' "$(clone_repo "$input" "$base" "$branch")" "$branch"
       return 0
     fi
-    err "Not a repo path or URL: $input"
-    exit 1
+    create_repo_from_input "$input" "$dev_dir" "$branch"
+    return 0
   fi
 
   local inside=""
@@ -144,7 +232,7 @@ pick_repo() {
     fi
   fi
 
-  read -r -p "Repo path or GitHub URL: " input
+  read -r -p "Repo path, GitHub URL, or new project name: " input
   if [ -z "$input" ]; then
     err "No input"
     exit 1
@@ -152,6 +240,11 @@ pick_repo() {
 
   if [ -d "$input" ]; then
     printf '%s\t%s' "$(cd "$input" && pwd -P)" "$branch"
+    return 0
+  fi
+
+  if is_local_path_hint "$input"; then
+    create_repo_from_input "$input" "$dev_dir" "$branch"
     return 0
   fi
 
@@ -163,8 +256,8 @@ pick_repo() {
     return 0
   fi
 
-  err "Not a repo path or URL: $input"
-  exit 1
+  create_repo_from_input "$input" "$dev_dir" "$branch"
+  return 0
 }
 
 attach_or_switch() {
@@ -181,8 +274,8 @@ get_sessions() {
 }
 
 menu_out() {
-  if [ -w /dev/tty ]; then
-    printf '%s\n' "$*" > /dev/tty
+  if [ -t 1 ]; then
+    printf '%s\n' "$*"
   else
     printf '%s\n' "$*" >&2
   fi
@@ -275,12 +368,25 @@ kill_session() {
 }
 
 kill_all_sessions() {
+  local yes_flag="${1:-}"
   local sessions
   sessions="$(get_sessions)"
   if [ -z "$sessions" ]; then
     err "No tmux sessions"
     exit 1
   fi
+
+  if [ "$yes_flag" != "--yes" ] && [ "$yes_flag" != "-y" ]; then
+    menu_out "Sessions to kill:"
+    while IFS= read -r s; do
+      menu_out "  - $s"
+    done <<<"$sessions"
+    if ! confirm_yes "Kill all tmux sessions?"; then
+      log "Canceled"
+      return 0
+    fi
+  fi
+
   tmux kill-server
   log "Killed all tmux sessions"
 }
@@ -319,6 +425,7 @@ rename_session() {
 switch_branch() {
   local repo_dir="$1"
   local branch="$2"
+  local current_branch=""
 
   if [ -z "$branch" ]; then
     return 0
@@ -327,6 +434,11 @@ switch_branch() {
   if [ -n "$(git -C "$repo_dir" status --porcelain)" ]; then
     err "Dirty repo, won’t checkout branch: ${branch}"
     exit 1
+  fi
+
+  current_branch="$(git -C "$repo_dir" symbolic-ref --short HEAD 2>/dev/null || true)"
+  if [ "$current_branch" = "$branch" ]; then
+    return 0
   fi
 
   if git -C "$repo_dir" show-ref --verify --quiet "refs/heads/$branch"; then
@@ -391,7 +503,7 @@ main() {
   case "$cmd" in
     new)
       shift
-      new_session "${1:-}"
+      new_session "${1:-}" "${2:-}"
       ;;
     attach)
       attach_session
@@ -408,7 +520,8 @@ main() {
       list_sessions
       ;;
     killall)
-      kill_all_sessions
+      shift
+      kill_all_sessions "${1:-}"
       ;;
     kill)
       shift

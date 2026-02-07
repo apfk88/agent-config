@@ -61,9 +61,10 @@ Linux note: ensure cron service is active (`cron` or `crond`), or auto-pull won'
 
 ## Tmux helper
 `tm new` creates a session named after the repo (windows: agent-0, agent-1, server, bash). If not in a repo, it prompts for a path or GitHub URL (clones if needed).  
+`tm new <name>` can also create a brand-new local project (prompts, then `git init`; default path `~/dev/<name>`). Use `./path`, `../path`, `~/path`, or absolute paths for explicit local locations.  
 Branch shorthand: `tm new org/repo#branch` or `tm new /path/to/repo branch`.
 `tm attach` lists sessions and asks which to attach.  
-`tm list` / `tm kill` / `tm killall` / `tm rename` / `tm exit` for session management.
+`tm list` / `tm kill` / `tm killall` / `tm rename` / `tm exit` for session management. `tm killall` asks for confirmation unless `--yes` is passed.
 
 Make it runnable anywhere:
 ```sh
