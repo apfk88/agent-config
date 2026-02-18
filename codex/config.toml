@@ -10,6 +10,7 @@ approval_policy = "never"
 
 # Workspace-only access
 sandbox_mode = "workspace-write"
+personality = "pragmatic"
 
 # Note: this block only applies when sandbox_mode = "workspace-write".
 [sandbox_workspace_write]
@@ -28,6 +29,7 @@ unified_exec = true
 apply_patch_freeform = true
 skills = true
 shell_snapshot = true
+multi_agent = true
 
 [beta]
 rmcp = true

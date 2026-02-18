@@ -11,10 +11,9 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - New deps: quick health check (recent releases/commits, adoption).
 - Web: search early; quote exact errors; prefer 2025–2026 sources
 - Use Codex background for long jobs
+- When working on large, complex features or refactors, use subagents for tasks (features, fixes, bug notation, etc.)
 - Team Config: prefer repo `.codex/` (layered over `~/.codex`) for shared rules/skills/config
-- Custom prompts deprecated; use skills for reusable workflows
 - Optional: `requirements.toml` to enforce sandbox/approvals when needed
-- Model default: `gpt-5.3-codex` for ChatGPT auth; API-key flows pin `gpt-5.2-codex` until 5.3 API rollout
 - Config debugging: use `/debug-config` to inspect effective layered settings
 
 ## Git
