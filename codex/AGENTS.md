@@ -15,6 +15,7 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - Team Config: prefer repo `.codex/` (layered over `~/.codex`) for shared rules/skills/config
 - Optional: `requirements.toml` to enforce sandbox/approvals when needed
 - Config debugging: use `/debug-config` to inspect effective layered settings
+- Speed mode: `/fast` default now; high-stakes edits => Standard mode (quality), fast mode ~2x faster/~2x cost
 
 ## Git
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.
