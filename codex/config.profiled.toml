@@ -6,7 +6,7 @@ profile = "ak-main"
 # GPT-5.4 is the current recommended Codex model.
 # For compatibility fallbacks, pin a prior model explicitly.
 model = "gpt-5.4"
-model_reasoning_effort = "high"
+model_reasoning_effort = "xhigh"
 
 # No approval prompts
 approval_policy = "never"
@@ -19,10 +19,6 @@ sandbox_mode = "workspace-write"
 network_access = true
 
 tool_output_token_limit = 25000
-# Leave room for native compaction near the 272–273k context window.
-# Formula: 273000 - (tool_output_token_limit + 15000)
-# With tool_output_token_limit=25000 ⇒ 273000 - (25000 + 15000) = 233000
-model_auto_compact_token_limit = 233000
 
 [profiles.ak-main.features]
 ghost_commit = false
