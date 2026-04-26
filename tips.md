@@ -4,7 +4,7 @@
 - `tm new [path|url] [branch]` or `tm new org/repo#branch`
 - `tm attach` (pick a session)
 - `tm list`, `tm kill`, `tm rename <new>`, `tm help`
-- Session name = repo folder
+- Session name = sanitized repo folder
 
 ## tmux basics
 - Prefix: `Ctrl-b`
