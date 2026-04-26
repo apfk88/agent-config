@@ -1,5 +1,17 @@
 # Tips
 
+## tm (agent-config)
+- `tm new [path|url] [branch]` or `tm new org/repo#branch`
+- `tm attach` (pick a session)
+- `tm list`, `tm kill`, `tm rename <new>`, `tm help`
+- Session name = repo folder
+
+## tmux basics
+- Prefix: `Ctrl-b`
+- Windows: `c` new, `w` list, `n/p` next/prev, `,` rename, `&` kill
+- Panes: `"` split, `%` split vertical, `o` next, `x` kill
+- Sessions: `d` detach, `s` list
+
 ## exe.dev quick refs
 - `ssh exe.dev`
 - `ssh exe.dev share show <vmname>`
