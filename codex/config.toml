@@ -1,9 +1,11 @@
 # Root config.
 # Layered load: repo `.codex/` (cwd/parents) overrides `~/.codex` and `/etc/codex`.
-# GPT-5.4 is the current recommended Codex model.
+# GPT-5.5 is the current recommended Codex model.
 # For compatibility fallbacks, pin a prior model explicitly.
-model = "gpt-5.4"
-model_reasoning_effort = "xhigh"
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+model_verbosity = "low"
+service_tier = "fast"
 
 # No approval prompts
 approval_policy = "never"
@@ -13,22 +15,19 @@ sandbox_mode = "workspace-write"
 personality = "pragmatic"
 
 # Note: this block only applies when sandbox_mode = "workspace-write".
-[sandbox_workspace_write]
-network_access = true
+notify = ["/Users/kvamme/.codex/plugins/cache/openai-bundled/computer-use/1.0.758/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
 
 tool_output_token_limit = 25000
 web_search = "live"
 
-[features]
-ghost_commit = false
-unified_exec = true
-apply_patch_freeform = true
-skills = true
-shell_snapshot = true
-multi_agent = true
+[sandbox_workspace_write]
+network_access = true
 
-[beta]
-rmcp = true
+[features]
+apply_patch_freeform = true
+fast_mode = true
+multi_agent = true
+memories = true
 
 [notice]
 hide_full_access_warning = true
@@ -51,6 +50,27 @@ trust_level = "trusted"
 [projects."/Users/kvamme/dev/quiet/command"]
 trust_level = "trusted"
 
+[projects."/Users/kvamme/dev/personal/oss/claude-code"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/quiet/bin/cultured"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/network"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/quiet/bin"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/quiet/bin/paperclip"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/8080/pollack"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/agent-config"]
+trust_level = "trusted"
+
 [mcp_servers.playwright]
 command = "npx"
 args = ["@playwright/mcp@latest"]
@@ -58,12 +78,24 @@ args = ["@playwright/mcp@latest"]
 [mcp_servers.figma]
 url = "https://mcp.figma.com/mcp"
 
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+
 [mcp_servers.linear]
 url = "https://mcp.linear.app/mcp"
 
 [mcp_servers.chrome-devtools]
 command = "npx"
 args = ["chrome-devtools-mcp@latest"]
+
+[mcp_servers.chrome-devtools.tools.new_page]
+approval_mode = "approve"
+
+[mcp_servers.chrome-devtools.tools.take_snapshot]
+approval_mode = "approve"
+
+[mcp_servers.chrome-devtools.tools.navigate_page]
+approval_mode = "approve"
 
 [plugins."google-calendar@openai-curated"]
 enabled = true
@@ -85,3 +117,31 @@ enabled = true
 
 [plugins."build-web-apps@openai-curated"]
 enabled = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[plugins."browser-use@openai-bundled"]
+enabled = true
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."build-macos-apps@openai-curated"]
+enabled = true
+
+[marketplaces.openai-bundled]
+last_updated = "2026-04-24T22:24:37Z"
+source_type = "local"
+source = "/Users/kvamme/.codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-04-24T12:35:08Z"
+source_type = "local"
+source = "/Users/kvamme/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"

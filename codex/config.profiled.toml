@@ -3,10 +3,12 @@
 profile = "ak-main"
 
 [profiles.ak-main]
-# GPT-5.4 is the current recommended Codex model.
+# GPT-5.5 is the current recommended Codex model.
 # For compatibility fallbacks, pin a prior model explicitly.
-model = "gpt-5.4"
-model_reasoning_effort = "xhigh"
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+model_verbosity = "low"
+service_tier = "fast"
 
 # No approval prompts
 approval_policy = "never"
@@ -14,19 +16,18 @@ approval_policy = "never"
 # Workspace-only access
 sandbox_mode = "workspace-write"
 
+tool_output_token_limit = 25000
+web_search = "live"
+
 # Note: this block only applies when sandbox_mode = "workspace-write".
 [profiles.ak-main.sandbox_workspace_write]
 network_access = true
 
-tool_output_token_limit = 25000
-
 [profiles.ak-main.features]
-ghost_commit = false
-unified_exec = true
 apply_patch_freeform = true
-web_search = true
-skills = true
-shell_snapshot = true
+fast_mode = true
+multi_agent = true
+memories = true
 
 [profiles.ak-main.notice]
 hide_full_access_warning = true
@@ -42,3 +43,6 @@ trust_level = "trusted"
 
 [projects."/Users/ak/Dev/quiet/command"]
 trust_level = "trusted"
+
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"

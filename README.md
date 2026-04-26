@@ -4,6 +4,7 @@ Shared coding-agent config; symlink targets. Defaults to Codex today; add others
 
 ## Layout
 - `codex/` Codex config (AGENTS, rules, skills).
+- `codex/skills/.system/` bundled system skills mirrored into this config repo.
 - `codex/vercel.toml` Shared Vercel team/project IDs for quick CLI lookup/deploy flows.
 - `scripts/bootstrap.sh` setup + auto-pull.
 - `scripts/autopull.sh` cron runner (branch + clean-tree guard).
@@ -24,6 +25,7 @@ Defaults (Codex):
 - `~/.codex/agents.md` -> `codex/AGENTS.md`
 - `~/.codex/config.toml` -> `codex/config.toml`
 - `~/.codex/skills` -> `codex/skills`
+- Spreadsheet, document, and presentation workflows come from OpenAI primary-runtime plugins, not local duplicate skills.
 - `~/.codex/tips.md` -> `tips.md`
 - `~/.tmux.conf` -> `tmux.conf`
 - `~/.local/bin/tm` -> `scripts/tm`

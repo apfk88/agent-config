@@ -13,9 +13,8 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - Use Codex background for long jobs
 - When working on large, complex features or refactors, use subagents for tasks (features, fixes, bug notation, etc.)
 - Team Config: prefer repo `.codex/` (layered over `~/.codex`) for shared rules/skills/config
-- Optional: `requirements.toml` to enforce sandbox/approvals when needed
-- Config debugging: use `/debug-config` to inspect effective layered settings
-- Speed mode: `/fast` default now; high-stakes edits => Standard mode (quality), fast mode ~2x faster/~2x cost
+- Config debugging: use `/status`, `/permissions`, `codex features list`, and `codex debug prompt-input`
+- Speed mode: default fast via `service_tier = "fast"`; use `/fast status|on|off`. GPT-5.5 fast is ~1.5x speed / 2.5x credits; Standard for high-stakes or cost-sensitive work.
 
 ## Git
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.
@@ -38,6 +37,7 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 
 ## Language/Stack Notes
 - UV is used to manage python.
+- fnm is used to manage node
 - Use repo’s package manager/runtime; no swaps w/o approval.
 - Swift: use workspace helper/daemon; validate `swift build` + tests; keep concurrency attrs right.
 - TypeScript: keep files small; follow existing patterns.
@@ -62,7 +62,7 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - Avoid: purple-on-white clichés, generic component grids, predictable layouts.
 
 ## Docs/Readme/Agent.md
-- Always keep readme up to date but focus on core instructins for other developers and agents
+- Always keep readme up to date but focus on core instructions for other developers and agents
 - Automatically keep the project Agent.md up to date with important information you don't want future agents not to know
 - When relevant - if this is a user facing app that requires public docs - create docs when needed in `/docs/*`
 
