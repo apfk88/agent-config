@@ -8,8 +8,6 @@ Shared coding-agent config; symlink targets. Defaults to Codex today; add others
 - `codex/vercel.toml` Shared Vercel team/project IDs for quick CLI lookup/deploy flows.
 - `scripts/bootstrap.sh` setup + auto-pull.
 - `scripts/autopull.sh` cron runner (branch + clean-tree guard).
-- `scripts/tm` tmux session helper.
-- `tmux.conf` tmux config.
 
 ## Bootstrap
 Prereqs: `gh` auth, `git`, `crontab`.
@@ -27,9 +25,8 @@ Defaults (Codex):
 - `~/.codex/skills` -> `codex/skills`
 - Spreadsheet, document, and presentation workflows come from OpenAI primary-runtime plugins, not local duplicate skills.
 - `~/.codex/tips.md` -> `tips.md`
-- `~/.tmux.conf` -> `tmux.conf`
-- `~/.local/bin/tm` -> `scripts/tm`
 - cron: `scripts/autopull.sh` every 60m (expected branch + clean tree; logs to `~/.cache/agent-config/autopull.log`)
+- legacy cleanup: removes old `~/.tmux.conf` and `~/.local/bin/tm` links only when they point into this repo.
 
 Env overrides:
 - `AGENT_CONFIG_REPO_DIR` (default `~/dev/agent-config`)
@@ -40,11 +37,8 @@ Env overrides:
 - `AGENT_CONFIG_FILE` / `AGENT_CONFIG_LINK` (default `config.toml` / `config.toml`, set `AGENT_CONFIG_FILE=""` to skip)
 - `AGENT_SKILLS_DIR` / `AGENT_SKILLS_LINK` (default `skills` / `skills`, set `AGENT_SKILLS_DIR=""` to skip)
 - `TIPS_FILE` / `TIPS_LINK` (default `tips.md` / `tips.md`, set `TIPS_FILE=""` to skip)
-- `TMUX_CONF_SOURCE` (default `tmux.conf`, set `TMUX_CONF_SOURCE=""` to skip)
-- `TMUX_CONF_LINK` (default `~/.tmux.conf`, set `TMUX_CONF_LINK=""` to skip)
-- `TM_BIN_DIR` (default `~/.local/bin`)
-- `TM_LINK` (default `tm`, set `TM_LINK=""` to skip)
-- `TM_SOURCE` (default `scripts/tm`)
+- `LEGACY_TMUX_CONF_LINK` (default `~/.tmux.conf`, cleanup-only)
+- `LEGACY_TM_BIN_DIR` / `LEGACY_TM_LINK` (default `~/.local/bin` / `tm`, cleanup-only)
 - `AGENT_CONFIG_BRANCH` (default `main`)
 - `PULL_EVERY_MINUTES` (default `60`)
 - `PULL_LOG_PATH` (default `~/.cache/agent-config/autopull.log`, set empty to disable)
@@ -60,17 +54,3 @@ crontab -l | grep -v "agent-config-autopull" | crontab -
 ```
 
 Linux note: ensure cron service is active (`cron` or `crond`), or auto-pull won't run.
-
-## Tmux helper
-`tm new` creates a session named after the repo (windows: agent-0, agent-1, server, bash). If not in a repo, it prompts for a path or GitHub URL (clones if needed).  
-`tm new <name>` can also create a brand-new local project (prompts, then `git init`; default path `~/dev/<name>`). Use `./path`, `../path`, `~/path`, or absolute paths for explicit local locations.  
-Branch shorthand: `tm new org/repo#branch` or `tm new /path/to/repo branch`.
-`tm attach` lists sessions and asks which to attach.  
-`tm list` / `tm kill` / `tm killall` / `tm rename` / `tm exit` for session management. `tm killall` asks for confirmation unless `--yes` is passed.
-
-Make it runnable anywhere:
-```sh
-mkdir -p ~/.local/bin
-ln -s "$PWD/scripts/tm" ~/.local/bin/tm
-```
-Ensure `~/.local/bin` is on `PATH`.

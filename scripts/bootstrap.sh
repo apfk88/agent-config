@@ -20,11 +20,9 @@ AGENT_SKILLS_DIR_DEFAULT="skills"
 AGENT_SKILLS_LINK_DEFAULT="skills"
 TIPS_FILE_DEFAULT="tips.md"
 TIPS_LINK_DEFAULT="tips.md"
-TMUX_CONF_SOURCE_DEFAULT="tmux.conf"
-TMUX_CONF_LINK_DEFAULT="$HOME/.tmux.conf"
-TM_BIN_DIR_DEFAULT="$HOME/.local/bin"
-TM_LINK_DEFAULT="tm"
-TM_SOURCE_DEFAULT="scripts/tm"
+LEGACY_TMUX_CONF_LINK_DEFAULT="$HOME/.tmux.conf"
+LEGACY_TM_BIN_DIR_DEFAULT="$HOME/.local/bin"
+LEGACY_TM_LINK_DEFAULT="tm"
 DEV_DIR_DEFAULT="$HOME/dev"
 
 BRANCH_DEFAULT="main"
@@ -197,50 +195,34 @@ install_tips_link() {
   log "  ${agent_dir}/${tips_link} -> ${tips_path}"
 }
 
-install_tmux_conf() {
+remove_link_if_points_into_repo() {
   local repo_dir="$1"
-  local tmux_source="${TMUX_CONF_SOURCE:-$TMUX_CONF_SOURCE_DEFAULT}"
-  local tmux_link="${TMUX_CONF_LINK:-$TMUX_CONF_LINK_DEFAULT}"
+  local link="$2"
 
-  if [ -z "$tmux_source" ] || [ -z "$tmux_link" ]; then
+  if [ -z "$link" ] || [ ! -L "$link" ]; then
     return 0
   fi
 
-  local tmux_path="$tmux_source"
-  if [ ! -f "$tmux_path" ]; then
-    tmux_path="${repo_dir}/${tmux_source}"
-  fi
-  [ -f "$tmux_path" ] || { err "Expected tmux conf: ${tmux_path}"; exit 1; }
-  tmux_path="$(cd "$(dirname "$tmux_path")" && pwd -P)/$(basename "$tmux_path")"
-
-  ensure_link "$tmux_path" "$tmux_link"
-
-  log "tmux conf set:"
-  log "  ${tmux_link} -> ${tmux_path}"
+  local target
+  target="$(readlink "$link")"
+  case "$target" in
+    "$repo_dir"/*)
+      rm "$link"
+      log "Removed legacy link: ${link}"
+      ;;
+  esac
 }
 
-install_tm_helper() {
+remove_legacy_tmux_links() {
   local repo_dir="$1"
-  local tm_link="${TM_LINK:-$TM_LINK_DEFAULT}"
-  local bin_dir="${TM_BIN_DIR:-$TM_BIN_DIR_DEFAULT}"
-  local tm_source="${TM_SOURCE:-$TM_SOURCE_DEFAULT}"
+  local tmux_link="${LEGACY_TMUX_CONF_LINK:-$LEGACY_TMUX_CONF_LINK_DEFAULT}"
+  local tm_bin_dir="${LEGACY_TM_BIN_DIR:-$LEGACY_TM_BIN_DIR_DEFAULT}"
+  local tm_link="${LEGACY_TM_LINK:-$LEGACY_TM_LINK_DEFAULT}"
 
-  if [ -z "$tm_link" ]; then
-    return 0
+  remove_link_if_points_into_repo "$repo_dir" "$tmux_link"
+  if [ -n "$tm_bin_dir" ] && [ -n "$tm_link" ]; then
+    remove_link_if_points_into_repo "$repo_dir" "${tm_bin_dir}/${tm_link}"
   fi
-
-  local tm_path="$tm_source"
-  if [ ! -f "$tm_path" ]; then
-    tm_path="${repo_dir}/${tm_source}"
-  fi
-  [ -f "$tm_path" ] || { err "Expected tm script: ${tm_path}"; exit 1; }
-  tm_path="$(cd "$(dirname "$tm_path")" && pwd -P)/$(basename "$tm_path")"
-
-  mkdir -p "$bin_dir"
-  ensure_link "$tm_path" "${bin_dir}/${tm_link}"
-
-  log "tm helper set:"
-  log "  ${bin_dir}/${tm_link} -> ${tm_path}"
 }
 
 cron_expr_for_minutes() {
@@ -321,6 +303,7 @@ main() {
   need_cmd crontab
   need_cmd grep
   need_cmd mv
+  need_cmd rm
   need_cmd date
   need_cmd readlink
 
@@ -344,8 +327,7 @@ main() {
   validate_layout "$repo_dir"
   install_symlinks "$repo_dir"
   install_tips_link "$repo_dir"
-  install_tmux_conf "$repo_dir"
-  install_tm_helper "$repo_dir"
+  remove_legacy_tmux_links "$repo_dir"
   install_cron_autopull "$repo_dir"
 
   local dev_dir="${DEV_DIR:-$DEV_DIR_DEFAULT}"
