@@ -6,12 +6,11 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - Contact: Alex Kvamme (@kvamme (X), @apfk88 (Github)).
 - “Make a note” => edit AGENTS.md (shortcut; not a blocker). Ignore `CLAUDE.md`.
 - “Add a tip” => append to `tips.md` in agent-config repo and commit + push.
+- Reasoning: default `xhigh`; lower only when explicitly optimizing for latency/cost.
 - Keep files <~500 LOC; split/refactor as needed.
 - Prefer end-to-end verify; if blocked, say what’s missing.
 - New deps: quick health check (recent releases/commits, adoption).
-- Web: search early; quote exact errors; prefer 2025–2026 sources
-- Use Codex background for long jobs
-- When working on large, complex features or refactors, use subagents for tasks (features, fixes, bug notation, etc.)
+- Web: use current primary sources; quote exact errors.
 - Team Config: prefer repo `.codex/` (layered over `~/.codex`) for shared rules/skills/config
 - Config debugging: use `/status`, `/permissions`, `codex features list`, and `codex debug prompt-input`
 - Speed mode: default fast via `service_tier = "fast"`; use `/fast status|on|off`. GPT-5.5 fast is ~1.5x speed / 2.5x credits; Standard for high-stakes or cost-sensitive work.
@@ -20,12 +19,10 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.
 - For new projects, init git.
 - Commit formatting: For tracked files run `git commit -m "<scoped message>" -- path/to/file1 path/to/file2`. For brand-new files, use the one-liner `git restore --staged :/ && git add "path/to/file1" "path/to/file2" && git commit -m "<scoped message>" -- path/to/file1 path/to/file2`
-- Safe by default: `git status/diff/log`.
 - For app changes, run the project build before committing when a build command exists. If blocked, state what is missing.
 - On non-`master` branches, push every commit (`git push`) unless the user explicitly asks for local-only commits.
 - On `master`, ask once per session whether to push commits as they are created; follow that answer for the rest of the session without re-asking.
-- Destructive ops forbidden unless explicit (`reset --hard`, `clean`, `restore`, `rm`, …).
-- Don’t delete/rename unexpected stuff; stop + ask.
+- Protected ops need explicit user request: `reset --hard`, `clean`, `restore`, `rm`, delete/rename unexpected files.
 - No repo-wide S/R scripts; keep edits small/reviewable.
 - Avoid manual `git stash`; if Git auto-stashes during pull/rebase, that’s fine (hint, not hard guardrail).
 - If user types a command (“pull and push”), that’s consent for that command.
@@ -34,25 +31,17 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - PRs: use `gh pr view/diff` (no URLs).
 - Commits: Conventional Commits (`feat|fix|refactor|build|ci|chore|docs|style|perf|test`).
 - Publish repos as private by default unless explicitly specified otherwise
+- Unrecognized changes: assume user/agent; don't revert; stop only if blocking.
 
 ## Language/Stack Notes
 - UV is used to manage python.
 - fnm is used to manage node
 - Use repo’s package manager/runtime; no swaps w/o approval.
 - Swift: use workspace helper/daemon; validate `swift build` + tests; keep concurrency attrs right.
-- TypeScript: keep files small; follow existing patterns.
 - Assume any web app will be deployed in Vercel
-- Make sure the app builds (`npm build`) before pushing or deploying
 - Keep Vercel IDs in-repo at `codex/vercel.toml` (`team_id`, `project_id`, optional project aliases) so CLI lookup/deploy steps are fast and repeatable.
 - Use default Vercel stack when possible: Neon Postgres, Vercel Blob, Vercel Edge Config
 - Use Clerk for auth
-
-## Critical Thinking
-- Fix root cause (not band-aid).
-- Unsure: read more code; if still stuck, ask w/ short options.
-- Conflicts: call out; pick safer path.
-- Unrecognized changes: assume other agent; keep going; focus your changes. If it causes issues, stop + ask user.
-- Leave breadcrumb notes in thread.
 
 ## UI
 - Typography: pick a real font; avoid Inter/Roboto/Arial/system defaults.
