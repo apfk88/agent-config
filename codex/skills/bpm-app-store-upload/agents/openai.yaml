@@ -1,0 +1,7 @@
+interface:
+  display_name: "BPM App Store Upload"
+  short_description: "Archive and upload BPM builds to App Store Connect"
+  default_prompt: "Use $bpm-app-store-upload to archive BPM and upload the next build to App Store Connect."
+
+policy:
+  allow_implicit_invocation: true
