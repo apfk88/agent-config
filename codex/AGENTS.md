@@ -12,8 +12,8 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - New deps: quick health check (recent releases/commits, adoption).
 - Web: use current primary sources; quote exact errors.
 - Team Config: prefer repo `.codex/` (layered over `~/.codex`) for shared rules/skills/config
-- Config debugging: use `/status`, `/permissions`, `codex features list`, and `codex debug prompt-input`
-- Speed mode: default fast via `service_tier = "fast"`; use `/fast status|on|off`. GPT-5.5 fast is ~1.5x speed / 2.5x credits; Standard for high-stakes or cost-sensitive work.
+- Config debugging: start with `codex doctor --all`; use `/status`, `/permissions`, `codex features list`, and `codex debug prompt-input` as needed.
+- Speed mode: Standard by default; use `/fast status|on|off` when supported.
 
 ## Git
 - IMPORTANT! Always save your changes in atomic commits: commit only the files you touched and list each path explicitly.
@@ -37,11 +37,10 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - UV is used to manage python.
 - fnm is used to manage node
 - Use repo’s package manager/runtime; no swaps w/o approval.
-- Swift: use workspace helper/daemon; validate `swift build` + tests; keep concurrency attrs right.
-- Assume any web app will be deployed in Vercel
-- Keep Vercel IDs in-repo at `codex/vercel.toml` (`team_id`, `project_id`, optional project aliases) so CLI lookup/deploy steps are fast and repeatable.
-- Use default Vercel stack when possible: Neon Postgres, Vercel Blob, Vercel Edge Config
-- Use Clerk for auth
+- Swift: follow existing project tooling; for Swift packages, validate `swift build` + tests; keep concurrency attrs right.
+- For new web apps without existing stack conventions, deploy to Vercel.
+- For those new Vercel apps, keep IDs in-repo at `codex/vercel.toml` (`team_id`, `project_id`, optional aliases).
+- Prefer Neon Postgres, Vercel Blob, Vercel Edge Config, and Clerk for those new apps unless requirements point elsewhere.
 
 ## UI
 - Typography: pick a real font; avoid Inter/Roboto/Arial/system defaults.
@@ -50,10 +49,10 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - Background: add depth (gradients/patterns), not flat default.
 - Avoid: purple-on-white clichés, generic component grids, predictable layouts.
 
-## Docs/Readme/Agent.md
-- Always keep readme up to date but focus on core instructions for other developers and agents
-- Automatically keep the project Agent.md up to date with important information you don't want future agents not to know
-- When relevant - if this is a user facing app that requires public docs - create docs when needed in `/docs/*`
+## Docs/README/AGENTS.md
+- When implementation changes developer setup or public behavior, update the README or public docs as needed.
+- Update project `AGENTS.md` only when recurring, project-specific guidance should persist.
+- For user-facing apps that require public documentation, create or update `/docs/*` as needed.
 
 ## Tests
 - I never think to write tests, so please write tests for core functionality as you go along.

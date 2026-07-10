@@ -1,12 +1,11 @@
 # Root config.
 # Layered load: repo `.codex/` (cwd/parents) overrides `~/.codex` and `/etc/codex`.
-# GPT-5.5 is the current recommended Codex model.
+# GPT-5.6 Sol is the current recommended Codex model for strongest capability.
 # For compatibility fallbacks, pin a prior model explicitly.
-model = "gpt-5.5"
+model = "gpt-5.6-sol"
 model_reasoning_effort = "xhigh"
 plan_mode_reasoning_effort = "xhigh"
 model_verbosity = "low"
-service_tier = "fast"
 
 # No approval prompts
 approval_policy = "never"
@@ -16,31 +15,20 @@ sandbox_mode = "workspace-write"
 personality = "pragmatic"
 
 # Note: this block only applies when sandbox_mode = "workspace-write".
-notify = ["/Users/kvamme/.codex/plugins/cache/openai-bundled/computer-use/1.0.758/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
 
 tool_output_token_limit = 25000
 web_search = "live"
+
+notify = ["/Users/kvamme/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient", "turn-ended"]
 
 [sandbox_workspace_write]
 network_access = true
 
 [features]
-apply_patch_freeform = true
-fast_mode = true
-multi_agent = true
 memories = true
 
 [notice]
 hide_full_access_warning = true
-
-[projects."/Users/ak/Dev/"]
-trust_level = "trusted"
-
-[projects."/Users/ak/Dev/personal/BPM"]
-trust_level = "trusted"
-
-[projects."/Users/ak/Dev/quiet/command"]
-trust_level = "trusted"
 
 [projects."/Users/kvamme/dev/quiet/fund-math"]
 trust_level = "trusted"
@@ -72,9 +60,54 @@ trust_level = "trusted"
 [projects."/Users/kvamme/dev/personal/agent-config"]
 trust_level = "trusted"
 
+[projects."/Users/kvamme/dev/personal/breathe"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/breathe_web"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/microgpt_101"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/microgpt_101_codex"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/8080/speedtrap"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/quiet/mcp"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/semis_101"]
+trust_level = "trusted"
+
+[projects."/"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/Documents/New project"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/Documents/New project 2"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/usb-audio"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/the-breathing-room"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/genome"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/ci-directory"]
+trust_level = "trusted"
+
+[projects."/Users/kvamme/dev/personal/kvamme-site-astro"]
+trust_level = "trusted"
+
 [mcp_servers.playwright]
 command = "npx"
-args = ["@playwright/mcp@latest"]
+args = ["@playwright/mcp@0.0.78"]
 
 [mcp_servers.figma]
 url = "https://mcp.figma.com/mcp"
@@ -85,23 +118,34 @@ url = "https://developers.openai.com/mcp"
 [mcp_servers.linear]
 url = "https://mcp.linear.app/mcp"
 
-[mcp_servers.chrome-devtools]
-command = "npx"
-args = ["chrome-devtools-mcp@latest"]
+[mcp_servers.node_repl]
+args = []
+command = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node_repl"
+startup_timeout_sec = 120
 
-[mcp_servers.chrome-devtools.tools.new_page]
-approval_mode = "approve"
+[mcp_servers.node_repl.env]
+NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
+NODE_REPL_NODE_MODULE_DIRS = "/Applications/ChatGPT.app/Contents/Resources/cua_node/lib/node_modules"
+NODE_REPL_NODE_PATH = "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node"
+NODE_REPL_TRUSTED_CODE_PATHS = "/Users/kvamme/.codex"
+CODEX_HOME = "/Users/kvamme/.codex"
+NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S = "2b020a2faded171bf620563ce51864b7c3ff320f1834f0044b73fcbeabb29a76,6d25aa7656feac858f3a3bdaea5bcbab0dbfd426c9de8e6931ce90c399ee8e4f"
+BROWSER_USE_AVAILABLE_BACKENDS = "chrome,iab"
+NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER = "Control the in-app browser in conjunction with the Browser Plugin."
+NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME = "Control the Chrome browser in conjunction with the Chrome Plugin. Prefer this method of controlling Chrome over alternatives (such as Computer Use) unless the user explicitly mentions an alternative."
+NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE = "Control desktop apps on macOS through Computer Use."
+BROWSER_USE_CODEX_APP_BUILD_FLAVOR = "prod"
+BROWSER_USE_CODEX_APP_VERSION = "26.707.30751"
+SKY_CUA_SERVICE_PATH = "/Users/kvamme/.codex/plugins/cache/openai-bundled/computer-use/1.0.1000362/Codex Computer Use.app"
+CODEX_CLI_PATH = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
-[mcp_servers.chrome-devtools.tools.take_snapshot]
-approval_mode = "approve"
-
-[mcp_servers.chrome-devtools.tools.navigate_page]
-approval_mode = "approve"
+[mcp_servers.computer-use]
+command = "./Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient"
+args = ["mcp"]
+cwd = "."
+enabled = false
 
 [plugins."google-calendar@openai-curated"]
-enabled = true
-
-[plugins."gmail@openai-curated"]
 enabled = true
 
 [plugins."github@openai-curated"]
@@ -119,12 +163,6 @@ enabled = true
 [plugins."build-web-apps@openai-curated"]
 enabled = true
 
-[plugins."computer-use@openai-bundled"]
-enabled = true
-
-[plugins."browser-use@openai-bundled"]
-enabled = true
-
 [plugins."documents@openai-primary-runtime"]
 enabled = true
 
@@ -137,12 +175,52 @@ enabled = true
 [plugins."build-macos-apps@openai-curated"]
 enabled = true
 
+[plugins."slack@openai-curated"]
+enabled = true
+
+[plugins."gmail@openai-curated"]
+enabled = true
+
+[plugins."chrome@openai-bundled"]
+enabled = true
+
+[plugins."computer-use@openai-bundled"]
+enabled = true
+
+[plugins."pdf@openai-primary-runtime"]
+enabled = true
+
+[plugins."template-creator@openai-primary-runtime"]
+enabled = true
+
+[plugins."sites@openai-bundled"]
+enabled = true
+
+[plugins."visualize@openai-bundled"]
+enabled = true
+
+[plugins."browser@openai-bundled"]
+enabled = true
+
 [marketplaces.openai-bundled]
-last_updated = "2026-04-24T22:24:37Z"
+last_updated = "2026-07-09T19:41:23Z"
 source_type = "local"
 source = "/Users/kvamme/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-04-24T12:35:08Z"
+last_updated = "2026-07-01T17:35:44Z"
 source_type = "local"
 source = "/Users/kvamme/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+[desktop]
+dictationDictionary = ["Taalas", "Kvamme"]
+preventSleepWhileRunning = true
+keepRemoteControlAwakeWhilePluggedIn = false
+followUpQueueMode = "steer"
+ambient-suggestions-enabled = true
+dock-icon-preference = "app-default"
+conversationDetailMode = "STEPS_PROSE"
+hotkey-window-projectless-default-enabled = true
