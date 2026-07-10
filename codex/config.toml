@@ -208,12 +208,13 @@ source_type = "local"
 source = "/Users/kvamme/.codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-07-01T17:35:44Z"
+last_updated = "2026-07-10T10:35:49Z"
 source_type = "local"
 source = "/Users/kvamme/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
+"gpt-5.6-sol" = 1
 
 [desktop]
 dictationDictionary = ["Taalas", "Kvamme"]
