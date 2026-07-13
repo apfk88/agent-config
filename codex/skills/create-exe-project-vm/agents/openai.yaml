@@ -1,0 +1,7 @@
+interface:
+  display_name: "Create exe.dev Project VM"
+  short_description: "Provision an exe.dev VM for Codex development"
+  default_prompt: "Use $create-exe-project-vm to provision and connect a project VM on exe.dev."
+
+policy:
+  allow_implicit_invocation: true

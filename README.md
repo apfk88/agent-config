@@ -3,7 +3,7 @@
 Shared coding-agent config; symlink targets. Defaults to Codex today; add others (Claude, etc.) later.
 
 ## Layout
-- `codex/` Codex config (AGENTS, rules, skills).
+- `codex/` Codex config (AGENTS, rules, skills, and portable exe.dev VM defaults).
 - `codex/skills/.system/` bundled system skills mirrored into this config repo.
 - `codex/vercel.toml` Shared Vercel team/project IDs for quick CLI lookup/deploy flows.
 - `scripts/bootstrap.sh` setup + auto-pull.
@@ -30,6 +30,11 @@ Defaults (Codex):
 - `~/.tmux.conf` -> `tmux.conf`
 - `~/.local/bin/tm` -> `scripts/tm`
 - cron: `scripts/autopull.sh` every 60m (expected branch + clean tree; logs to `~/.cache/agent-config/autopull.log`)
+
+For exe.dev project VMs, the `create-exe-project-vm` skill clones this repo and
+sets `AGENT_CONFIG_FILE=config.exe.toml`. This links portable Linux defaults
+instead of the macOS-specific `config.toml` while reusing AGENTS, skills, tips,
+tmux config, `tm`, and auto-pull.
 
 Env overrides:
 - `AGENT_CONFIG_REPO_DIR` (default `~/dev/agent-config`)
