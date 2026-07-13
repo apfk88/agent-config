@@ -72,5 +72,8 @@ assert_contains "$dry_output" "exe-api new" "dry run uses HTTPS control plane"
 assert_contains "$dry_output" "tag:llm" "dry run checks LLM integration"
 assert_contains "$dry_output" "proj-demo-app-repo" "dry run adds project integration"
 assert_contains "$dry_output" "config.exe.toml" "dry run selects remote config"
+assert_contains "$(<"$SCRIPT_DIR/provision_exe_project_vm.sh")" \
+  "'Reply exactly REMOTE_CODEX_OK' </dev/null" \
+  "remote Codex verification cannot consume bootstrap input"
 
 printf 'All provision_exe_project_vm tests passed\n'

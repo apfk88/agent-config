@@ -419,7 +419,7 @@ codex app-server --help >/dev/null
 [ "$(readlink "$HOME/.codex/config.toml")" = "$HOME/repos/agent-config/codex/config.exe.toml" ]
 GH_HOST="$project_host" gh repo view "$repository" --json nameWithOwner >/dev/null
 git -C "$project_dir" status --short --branch
-codex_output="$(cd "$project_dir" && codex exec --ephemeral --skip-git-repo-check 'Reply exactly REMOTE_CODEX_OK')"
+codex_output="$(cd "$project_dir" && codex exec --ephemeral --skip-git-repo-check 'Reply exactly REMOTE_CODEX_OK' </dev/null)"
 printf '%s\n' "$codex_output" | grep -Fxq REMOTE_CODEX_OK
 printf 'Remote verification passed\n'
 REMOTE
