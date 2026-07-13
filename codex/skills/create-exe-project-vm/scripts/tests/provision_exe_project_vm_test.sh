@@ -6,6 +6,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 source "$SCRIPT_DIR/bootstrap_exe_project_credentials.sh"
 # shellcheck source=../provision_exe_project_vm.sh
 source "$SCRIPT_DIR/provision_exe_project_vm.sh"
+# shellcheck source=../register_codex_remote_project.sh
+source "$SCRIPT_DIR/register_codex_remote_project.sh"
 
 fail() {
   printf 'FAIL: %s\n' "$*" >&2
@@ -72,8 +74,60 @@ assert_contains "$dry_output" "exe-api new" "dry run uses HTTPS control plane"
 assert_contains "$dry_output" "tag:llm" "dry run checks LLM integration"
 assert_contains "$dry_output" "proj-demo-app-repo" "dry run adds project integration"
 assert_contains "$dry_output" "config.exe.toml" "dry run selects remote config"
+assert_contains "$dry_output" "start Codex task" "dry run creates the first remote task"
 assert_contains "$(<"$SCRIPT_DIR/provision_exe_project_vm.sh")" \
   "'Reply exactly REMOTE_CODEX_OK' </dev/null" \
   "remote Codex verification cannot consume bootstrap input"
+assert_contains "$(<"$SCRIPT_DIR/provision_exe_project_vm.sh")" \
+  "exeuntu configure codex" \
+  "remote setup uses exeuntu Codex configuration"
+
+app_config="$tmp_dir/codex-app/config.json"
+mkdir -p "$(dirname "$app_config")"
+printf '%s\n' '{"version":1,"sshConnectTimeoutSeconds":12,"remoteConnections":[{"sshAlias":"proj-existing","projects":[{"remotePath":"/home/exedev/src/existing"}]}]}' > "$app_config"
+write_merged_config "$app_config" "proj-demo" "/home/exedev/src/demo" "demo"
+write_merged_config "$app_config" "proj-demo" "/home/exedev/src/demo" "demo"
+assert_eq "1" "$(jq '[.remoteConnections[] | select(.sshAlias == "proj-demo")] | length' "$app_config")" \
+  "Codex app host registration is idempotent"
+assert_eq "1" "$(jq '[.remoteConnections[] | select(.sshAlias == "proj-demo") | .projects[] | select(.remotePath == "/home/exedev/src/demo")] | length' "$app_config")" \
+  "Codex app project registration is idempotent"
+assert_eq "12" "$(jq -r '.sshConnectTimeoutSeconds' "$app_config")" \
+  "Codex app registration preserves global settings"
+assert_eq "demo" "$(jq -r '.remoteConnections[] | select(.sshAlias == "proj-demo") | .projects[0].label' "$app_config")" \
+  "Codex app registration records the label"
+
+fake_bin="$tmp_dir/fake-bin"
+remote_dir="$tmp_dir/remote-project"
+mkdir -p "$fake_bin" "$remote_dir"
+cat > "$fake_bin/codex" <<'FAKE_CODEX'
+#!/usr/bin/env bash
+while IFS= read -r line; do
+  method="$(printf '%s' "$line" | jq -r '.method // empty')"
+  case "$method" in
+    initialize) printf '%s\n' '{"id":1,"result":{"codexHome":"/tmp/codex"}}' ;;
+    thread/start)
+      printf '%s' "$line" | jq -e '.params.approvalPolicy == "never" and .params.sandbox == "danger-full-access"' >/dev/null || exit 1
+      printf '%s\n' '{"id":2,"result":{"thread":{"id":"thread-test"}}}' ;;
+    turn/start)
+      printf '%s' "$line" | jq -e '.params.sandboxPolicy.type == "dangerFullAccess"' >/dev/null || exit 1
+      printf '%s\n' '{"id":3,"result":{"turn":{"id":"turn-test"}}}' '{"method":"turn/completed","params":{"turn":{"id":"turn-test","status":"completed"}}}' ;;
+    turn/interrupt) printf '%s\n' '{"id":4,"result":{}}' ;;
+    thread/name/set) printf '%s\n' '{"id":5,"result":{}}' ;;
+  esac
+done
+FAKE_CODEX
+chmod +x "$fake_bin/codex"
+task_output="$(PATH="$fake_bin:$PATH" bash "$SCRIPT_DIR/start_codex_remote_task.sh" --remote \
+  "$remote_dir" "$(printf 'xtest prompt' | base64 | tr -d '\n')" "$(printf 'test title' | base64 | tr -d '\n')")"
+assert_eq "thread-test" "$(printf '%s' "$task_output" | jq -r '.thread_id')" \
+  "remote task uses the VM app-server"
+assert_eq "completed" "$(printf '%s' "$task_output" | jq -r '.status')" \
+  "remote task waits for completion"
+ready_output="$(PATH="$fake_bin:$PATH" bash "$SCRIPT_DIR/start_codex_remote_task.sh" --remote \
+  "$remote_dir" "$(printf 'x' | base64 | tr -d '\n')" "$(printf 'ready title' | base64 | tr -d '\n')")"
+assert_eq "ready" "$(printf '%s' "$ready_output" | jq -r '.status')" \
+  "remote task can be created without a model call"
+assert_eq "turn-test" "$(printf '%s' "$ready_output" | jq -r '.turn_id')" \
+  "ready remote task records its handoff marker"
 
 printf 'All provision_exe_project_vm tests passed\n'

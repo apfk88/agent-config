@@ -79,6 +79,7 @@ For the real setup, omit `--dry-run`:
 bash "${CODEX_HOME:-$HOME/.codex}/skills/create-exe-project-vm/scripts/provision_exe_project_vm.sh" \
   --repo "OWNER/REPO" \
   --local-path "/absolute/local/path" \
+  --initial-prompt "THE USER'S FIRST BUILD REQUEST" \
   "project slug"
 ```
 
@@ -91,21 +92,23 @@ The script:
 5. Clones `agent-config`, runs its bootstrap, and links remote-safe config, instructions, skills, tips, and helpers.
 6. Clones the project to `~/src/<repo>` and creates or reuses `codex/proj-<slug>`.
 7. Configures `GH_HOST`/`GH_REPO` for the restricted project integration.
-8. Configures Codex to use the ChatGPT-backed exe.dev LLM integration without VM credentials.
-9. Verifies GitHub API access, Git access, a real Codex response, app-server availability, and symlinks.
+8. Runs `exeuntu configure codex` so the attached `llm` integration supplies the ChatGPT-backed provider without VM credentials, then layers the remote-safe personal defaults.
+9. Creates the first task through the VM's Codex app-server with `approval: never` and `danger-full-access`, preserving the VM's working restricted GitHub network path. With no prompt, it seeds and immediately interrupts a readiness marker so the task appears without waiting on the model endpoint; with `--initial-prompt`, it runs that build request remotely.
+10. Registers and auto-connects the SSH host and project through `~/.codex/codex-app/config.json` plus the app's `codex://codex-app/apply-config` deep link.
+11. Verifies GitHub API access, Git access, a real Codex response, app-server availability, and symlinks.
 
 If exe.dev reports that GitHub is not linked, pause and ask the user to link the exe.dev GitHub App from the exe.dev Integrations page, then rerun. Do not fall back to a broad VM token.
 
-## 3. Connect Codex desktop
+## 3. Verify Codex desktop and start remotely
 
 After the script succeeds:
 
-1. Open **Settings > Connections** in the Codex/ChatGPT desktop app.
-2. Enable the concrete SSH host `proj-<slug>`.
-3. Add remote project folder `/home/exedev/src/<repo>`.
-4. Start a small remote task that runs `pwd` and `git status`.
+1. Use the Codex app project-list tool and find the project whose host is `remote-ssh-discovered:proj-<slug>` and whose path is `/home/exedev/src/<repo>`. Retry briefly while the deep link is being applied.
+2. If it does not appear, inspect the desktop log and `~/.codex/codex-app/config.json`; do not ask the user to enable the connection manually.
+3. Find the task ID returned as `remote_thread_id`. Do not create a replacement task through the desktop background-task API; its safety sandbox can block the restricted GitHub host.
+4. Verify that task has the expected remote host and `cwd`; if an initial prompt ran, also inspect its branch report. Open it with the Codex navigation tool and include the created-task directive in the final response.
 
-Use supported app UI automation when available; otherwise give these three clicks to the user. For an existing local task, use the run-location control and **Hand off** after both project locations are saved.
+No Connections UI step is expected. For an existing *other* local task, use Codex Handoff after the matching remote project appears; a task cannot hand itself off.
 
 ## 4. Report
 
@@ -118,4 +121,5 @@ Return:
 - remote branch
 - Codex provider verification result
 - remote verification result
-- whether the desktop connection was added or still needs the UI step
+- desktop connection/project registration result
+- created remote task

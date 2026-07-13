@@ -4,13 +4,14 @@ set -euo pipefail
 DRY_RUN=0
 REPO=""
 LOCAL_PATH=""
+INITIAL_PROMPT=""
+INITIAL_TITLE=""
 AGENT_CONFIG_REPO="${AGENT_CONFIG_REPO:-apfk88/agent-config}"
 SSH_CONFIG_PATH="${SSH_CONFIG_PATH:-$HOME/.ssh/config}"
 EXE_API_URL="${EXE_API_URL:-https://exe.dev/exec}"
 EXE_API_TOKEN_PATH="${EXE_API_TOKEN_PATH:-$HOME/.config/exe/project-vm.token}"
 EXE_PROJECT_KEY_PATH="${EXE_PROJECT_KEY_PATH:-$HOME/.ssh/id_exe_proj}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
-
 usage() {
   cat <<'USAGE'
 Usage: provision_exe_project_vm.sh [options] <project-slug>
@@ -18,6 +19,8 @@ Usage: provision_exe_project_vm.sh [options] <project-slug>
 Options:
   --repo OWNER/REPO       Existing GitHub repository (required)
   --local-path PATH       Existing laptop clone (required)
+  --initial-prompt TEXT   Optional first remote Codex request
+  --initial-title TEXT    First remote task title
   --dry-run               Print the plan without changing local or remote state
   -h, --help              Show this help
 
@@ -27,14 +30,11 @@ the project to ~/src/<repo>. Uses a restricted exe.dev HTTPS token and a
 tag-scoped SSH key; run bootstrap_exe_project_credentials.sh once if absent.
 USAGE
 }
-
 log() { printf '%s\n' "$*"; }
 die() { printf 'ERROR: %s\n' "$*" >&2; exit 1; }
-
 need_cmd() {
   command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"
 }
-
 normalize_slug() {
   local value="$1"
   value="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//')"
@@ -44,24 +44,20 @@ normalize_slug() {
   [ -n "$value" ] || return 1
   printf '%s' "$value"
 }
-
 validate_repo() {
   [[ "$1" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]] || die "Invalid GitHub repository: $1"
 }
-
 print_cmd() {
   printf '+ '
   printf '%q ' "$@"
   printf '\n'
 }
-
 run_cmd() {
   print_cmd "$@"
   if [ "$DRY_RUN" -eq 0 ]; then
     "$@"
   fi
 }
-
 exe_command_string() {
   local output="" arg escaped
   for arg in "$@"; do
@@ -75,7 +71,6 @@ exe_command_string() {
   done
   printf '%s' "${output# }"
 }
-
 exe_api() {
   [ -r "$EXE_API_TOKEN_PATH" ] || die "Missing exe.dev API token: ${EXE_API_TOKEN_PATH}"
   local token command
@@ -88,20 +83,17 @@ exe_api() {
     --data-binary "$command" \
     "$EXE_API_URL"
 }
-
 print_exe_cmd() {
   printf '+ exe-api '
   printf '%q ' "$@"
   printf '\n'
 }
-
 run_exe() {
   print_exe_cmd "$@"
   if [ "$DRY_RUN" -eq 0 ]; then
     exe_api "$@"
   fi
 }
-
 host_block_hostname() {
   local alias="$1"
   local config="$2"
@@ -114,7 +106,6 @@ host_block_hostname() {
     active && tolower($1) == "hostname" { print $2; exit }
   ' "$config"
 }
-
 ensure_ssh_alias() {
   local alias="$1"
   local hostname="$2"
@@ -154,7 +145,6 @@ ensure_ssh_alias() {
   } >> "$SSH_CONFIG_PATH"
   log "Added SSH alias: ${alias} -> ${hostname}"
 }
-
 local_repo_slug() {
   local path="$1"
   local origin
@@ -175,7 +165,6 @@ local_repo_slug() {
   esac
   printf '%s' "${origin%.git}"
 }
-
 preflight() {
   need_cmd ssh
   need_cmd curl
@@ -202,7 +191,6 @@ preflight() {
   actual_repo="$(local_repo_slug "$LOCAL_PATH" || true)"
   [ "$actual_repo" = "$REPO" ] || die "${LOCAL_PATH} origin is ${actual_repo:-not GitHub}; expected ${REPO}"
 }
-
 ensure_vm() {
   local vm="$1"
   if [ "$DRY_RUN" -eq 1 ]; then
@@ -223,7 +211,6 @@ ensure_vm() {
   printf '%s\n' "$tags" | grep -Fxq llm || die "Existing VM ${vm} is not tagged llm; refusing to reuse it"
   log "Reusing existing project VM: ${vm}"
 }
-
 verify_llm_integration() {
   if [ "$DRY_RUN" -eq 1 ]; then
     log "[dry-run] verify configured llm integration is attached to tag:llm"
@@ -238,7 +225,6 @@ verify_llm_integration() {
   printf '%s' "$integration" | jq -e '(.attachments // []) | index("tag:llm") != null' >/dev/null || \
     die "exe.dev llm integration is not attached to tag:llm"
 }
-
 wait_for_ssh() {
   local destination="$1"
   if [ "$DRY_RUN" -eq 1 ]; then
@@ -256,7 +242,6 @@ wait_for_ssh() {
   done
   die "Timed out waiting for SSH: ${destination}"
 }
-
 ensure_integration() {
   local name="$1"
   local repository="$2"
@@ -294,15 +279,12 @@ ensure_integration() {
     log "Integration already attached: ${name}"
   fi
 }
-
 encode_base64() {
   printf '%s' "$1" | base64 | tr -d '\n'
 }
-
 qualified_gh_repo() {
   printf '%s/%s' "$1" "$2"
 }
-
 prepare_remote() {
   local destination="$1"
   local vm="$2"
@@ -330,7 +312,7 @@ prepare_remote() {
     return 0
   fi
 
-  run_cmd ssh "$destination" 'sudo exeuntu update codex && codex --version'
+  run_cmd ssh "$destination" 'sudo exeuntu update codex && exeuntu configure codex && codex --version'
 
   ssh "$destination" bash -s -- \
     "$config_url" "$project_url" "$project_host" "$REPO" "$repo_name" "$vm" "$gh_repo" "$name_b64" "$email_b64" "$remote_branch" <<'REMOTE'
@@ -392,7 +374,6 @@ git_email="$(printf '%s' "$email_b64" | base64 -d)"
 [ -z "$git_email" ] || git config --global user.email "$git_email"
 REMOTE
 }
-
 verify_remote() {
   local destination="$1"
   local project_integration="$2"
@@ -424,7 +405,6 @@ printf '%s\n' "$codex_output" | grep -Fxq REMOTE_CODEX_OK
 printf 'Remote verification passed\n'
 REMOTE
 }
-
 main() {
   while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -434,6 +414,14 @@ main() {
         ;;
       --local-path)
         LOCAL_PATH="${2:-}"
+        shift 2
+        ;;
+      --initial-prompt)
+        INITIAL_PROMPT="${2:-}"
+        shift 2
+        ;;
+      --initial-title)
+        INITIAL_TITLE="${2:-}"
         shift 2
         ;;
       --dry-run)
@@ -459,7 +447,7 @@ main() {
   validate_repo "$REPO"
   validate_repo "$AGENT_CONFIG_REPO"
 
-  local slug vm hostname destination repo_name project_integration config_integration
+  local slug vm hostname destination repo_name project_integration config_integration initial_prompt initial_title task_result remote_thread_id
   slug="$(normalize_slug "$1")" || die "Project slug must contain letters or numbers"
   vm="proj-${slug}"
   hostname="${vm}.exe.xyz"
@@ -479,6 +467,19 @@ main() {
   ensure_integration "$config_integration" "$AGENT_CONFIG_REPO" "$vm" no
   prepare_remote "$destination" "$vm" "$project_integration" "$config_integration" "$repo_name"
   verify_remote "$destination" "$project_integration" "$repo_name"
+  initial_prompt="$INITIAL_PROMPT"
+  initial_title="${INITIAL_TITLE:-Prepare ${repo_name} on ${vm}}"
+  task_result='{"thread_id":null}'
+  local task_args=("$SCRIPT_DIR/start_codex_remote_task.sh" --ssh-alias "$vm" --remote-path "/home/exedev/src/${repo_name}" --title "$initial_title" --prompt "$initial_prompt")
+  if [ "$DRY_RUN" -eq 1 ]; then
+    "${task_args[@]}" --dry-run
+  else
+    task_result="$("${task_args[@]}")"
+  fi
+  remote_thread_id="$(printf '%s' "$task_result" | jq -r '.thread_id // empty')"
+  local register_args=("$SCRIPT_DIR/register_codex_remote_project.sh" --ssh-alias "$vm" --remote-path "/home/exedev/src/${repo_name}" --label "$repo_name")
+  [ "$DRY_RUN" -eq 0 ] || register_args+=(--dry-run)
+  "${register_args[@]}"
 
   jq -n \
     --arg vm "$vm" \
@@ -488,9 +489,9 @@ main() {
     --arg remote_path "/home/exedev/src/${repo_name}" \
     --arg remote_branch "codex/${vm}" \
     --arg github_host "${project_integration}.int.exe.xyz" \
-    '{vm: $vm, ssh_alias: $ssh_alias, repo: $repo, local_path: $local_path, remote_path: $remote_path, remote_branch: $remote_branch, github_host: $github_host}'
+    --arg remote_thread_id "$remote_thread_id" \
+    '{vm: $vm, ssh_alias: $ssh_alias, repo: $repo, local_path: $local_path, remote_path: $remote_path, remote_branch: $remote_branch, github_host: $github_host, codex_desktop_registered: true, remote_thread_id: (if $remote_thread_id == "" then null else $remote_thread_id end)}'
 }
-
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
   main "$@"
 fi
