@@ -26,6 +26,9 @@ assert_contains() {
 
 assert_eq "my-project" "$(normalize_slug 'My Project')" "normalizes project slug"
 assert_eq "my-project" "$(normalize_slug 'proj-My Project')" "removes proj prefix"
+assert_eq "project.int.exe.xyz/apfk88/demo" \
+  "$(qualified_gh_repo project.int.exe.xyz apfk88/demo)" \
+  "qualifies GH_REPO for custom host"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT

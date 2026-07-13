@@ -237,6 +237,10 @@ encode_base64() {
   printf '%s' "$1" | base64 | tr -d '\n'
 }
 
+qualified_gh_repo() {
+  printf '%s/%s' "$1" "$2"
+}
+
 prepare_remote() {
   local destination="$1"
   local vm="$2"
@@ -246,8 +250,9 @@ prepare_remote() {
   local project_host="${project_integration}.int.exe.xyz"
   local config_url="https://${config_integration}.int.exe.xyz/${AGENT_CONFIG_REPO}.git"
   local project_url="https://${project_host}/${REPO}.git"
-  local git_name git_email name_b64 email_b64
+  local gh_repo git_name git_email name_b64 email_b64
 
+  gh_repo="$(qualified_gh_repo "$project_host" "$REPO")"
   git_name="$(git config --global user.name 2>/dev/null || true)"
   git_email="$(git config --global user.email 2>/dev/null || true)"
   name_b64="$(encode_base64 "$git_name")"
@@ -264,7 +269,7 @@ prepare_remote() {
   run_cmd ssh "$destination" 'sudo exeuntu update codex && codex --version'
 
   ssh "$destination" bash -s -- \
-    "$config_url" "$project_url" "$project_host" "$REPO" "$repo_name" "$vm" "$name_b64" "$email_b64" <<'REMOTE'
+    "$config_url" "$project_url" "$project_host" "$REPO" "$repo_name" "$vm" "$gh_repo" "$name_b64" "$email_b64" <<'REMOTE'
 set -euo pipefail
 config_url="$1"
 project_url="$2"
@@ -272,8 +277,9 @@ project_host="$3"
 repository="$4"
 repo_name="$5"
 vm="$6"
-name_b64="$7"
-email_b64="$8"
+gh_repo="$7"
+name_b64="$8"
+email_b64="$9"
 config_dir="$HOME/repos/agent-config"
 project_dir="$HOME/src/$repo_name"
 
@@ -305,7 +311,7 @@ if ! grep -Fq "$marker" "$profile"; then
   {
     printf '\n%s\n' "$marker"
     printf 'export GH_HOST=%q\n' "$project_host"
-    printf 'export GH_REPO=%q\n' "$repository"
+    printf 'export GH_REPO=%q\n' "$gh_repo"
   } >> "$profile"
 fi
 
@@ -358,7 +364,7 @@ codex app-server --help >/dev/null
 [ -L "$HOME/.codex/config.toml" ]
 [ -L "$HOME/.codex/skills" ]
 [ "$(readlink "$HOME/.codex/config.toml")" = "$HOME/repos/agent-config/codex/config.exe.toml" ]
-GH_HOST="$project_host" GH_REPO="$repository" gh repo view --json nameWithOwner >/dev/null
+GH_HOST="$project_host" gh repo view "$repository" --json nameWithOwner >/dev/null
 git -C "$HOME/src/$repo_name" status --short --branch
 printf 'Remote verification passed\n'
 REMOTE
