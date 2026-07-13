@@ -2,6 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+# shellcheck source=../bootstrap_exe_project_credentials.sh
+source "$SCRIPT_DIR/bootstrap_exe_project_credentials.sh"
 # shellcheck source=../provision_exe_project_vm.sh
 source "$SCRIPT_DIR/provision_exe_project_vm.sh"
 
@@ -29,6 +31,10 @@ assert_eq "my-project" "$(normalize_slug 'proj-My Project')" "removes proj prefi
 assert_eq "project.int.exe.xyz/apfk88/demo" \
   "$(qualified_gh_repo project.int.exe.xyz apfk88/demo)" \
   "qualifies GH_REPO for custom host"
+assert_eq "integrations add github --name=demo" \
+  "$(exe_command_string integrations add github --name=demo)" \
+  "builds exe.dev API command"
+assert_eq "exe1.test" "$(extract_api_token '{"token":"exe1.test"}')" "extracts API token"
 
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
@@ -41,6 +47,16 @@ ensure_ssh_alias "proj-test" "proj-test.exe.xyz" >/dev/null
 assert_eq "proj-test.exe.xyz" "$(host_block_hostname proj-test "$SSH_CONFIG_PATH")" "records SSH hostname"
 assert_eq "1" "$(grep -c '^Host proj-test$' "$SSH_CONFIG_PATH")" "SSH alias is idempotent"
 
+credential_config="$tmp_dir/credential-config"
+printf 'Host *\n  IdentityAgent /tmp/1password.sock\n' > "$credential_config"
+ensure_project_ssh_config "$credential_config" "$tmp_dir/id_exe_proj"
+ensure_project_ssh_config "$credential_config" "$tmp_dir/id_exe_proj"
+assert_eq "$BEGIN_MARKER" "$(head -n 1 "$credential_config")" "project credentials precede Host star"
+assert_eq "1" "$(grep -cF "$BEGIN_MARKER" "$credential_config")" "credential block is idempotent"
+assert_contains "$(ssh -F "$credential_config" -G proj-demo 2>/dev/null)" \
+  "identityagent none" \
+  "project alias bypasses SSH agent"
+
 printf 'Host proj-broken\n  User exedev\n' >> "$SSH_CONFIG_PATH"
 if (ensure_ssh_alias "proj-broken" "proj-broken.exe.xyz" >/dev/null 2>&1); then
   fail "rejects SSH alias without explicit HostName"
@@ -51,7 +67,9 @@ dry_output="$({
   main --dry-run --repo apfk88/demo --local-path /tmp/demo 'Demo App'
 })"
 assert_contains "$dry_output" "VM: proj-demo-app" "dry run names VM"
-assert_contains "$dry_output" "--tag=proj" "dry run tags VM"
+assert_contains "$dry_output" "--tag=proj\\,llm" "dry run tags VM"
+assert_contains "$dry_output" "exe-api new" "dry run uses HTTPS control plane"
+assert_contains "$dry_output" "tag:llm" "dry run checks LLM integration"
 assert_contains "$dry_output" "proj-demo-app-repo" "dry run adds project integration"
 assert_contains "$dry_output" "config.exe.toml" "dry run selects remote config"
 

@@ -1,17 +1,20 @@
 # Portable Codex defaults for Linux project VMs on exe.dev.
 # Personal instructions and skills are linked from this repository by bootstrap.sh.
 model = "gpt-5.6-sol"
+model_provider = "exe-llm"
 model_reasoning_effort = "xhigh"
 plan_mode_reasoning_effort = "xhigh"
 model_verbosity = "low"
 approval_policy = "never"
-sandbox_mode = "workspace-write"
+sandbox_mode = "danger-full-access"
 personality = "pragmatic"
 tool_output_token_limit = 25000
 web_search = "live"
 
-[sandbox_workspace_write]
-network_access = true
+[model_providers.exe-llm]
+name = "exe-llm"
+base_url = "https://llm.int.exe.xyz/v1"
+requires_openai_auth = false
 
 [features]
 memories = true
@@ -21,4 +24,3 @@ hide_full_access_warning = true
 
 [mcp_servers.openaiDeveloperDocs]
 url = "https://developers.openai.com/mcp"
-

@@ -11,18 +11,22 @@ Provision one durable VM per project. Use GitHub as the repository source of tru
 
 - VM: `proj-<lowercase-kebab-slug>`
 - exe.dev tag: `proj` (shown as `#proj`)
+- LLM attachment tag: `llm`
 - GitHub owner: `apfk88`
 - Laptop clone: `/Users/kvamme/dev/personal/<repo>`
 - VM clone: `~/src/<repo>`
 - Agent config clone: `~/repos/agent-config`
 - GitHub access: two repo-scoped exe.dev integrations, one for the project and one for `apfk88/agent-config`
 - Remote Codex config: `codex/config.exe.toml`; never link the macOS-specific `codex/config.toml` on Linux
+- Remote branch: `codex/proj-<slug>` for automatic pushes without a `master` confirmation
 
 ## Guardrails
 
 - Start with `git status --short --branch` in any local repository involved.
 - Do not copy `~/.codex/auth.json`, GitHub tokens, SSH private keys, or other long-lived credentials to the VM.
-- Use `codex login --device-auth` on the VM. The user completes the short-lived browser authorization.
+- Use the exe.dev `llm` integration through `https://llm.int.exe.xyz/v1`; do not run per-VM Codex login.
+- Use the local `#proj`-scoped SSH key for project VMs. Never disable 1Password SSH globally.
+- Use the command-restricted exe.dev HTTPS token for provisioning. It must not permit VM deletion.
 - Keep GitHub access repo-scoped through exe.dev integrations. Do not run `gh auth login` on the VM.
 - Do not rsync two working trees. Use Git or Codex Handoff.
 - Do not silently commit existing local files. Inspect for secrets and obtain approval for an initial commit when files already exist.
@@ -50,6 +54,15 @@ Confirm the local repository exists and its GitHub repository is accessible befo
 
 ## 2. Preview and provision
 
+On the first run, bootstrap the local automation credentials. This requires one
+1Password authorization, creates a no-passphrase key limited to `#proj` VMs,
+mints a one-year control-plane token restricted to required non-delete
+commands, and inserts a host-specific SSH block before `Host *`:
+
+```bash
+bash "${CODEX_HOME:-$HOME/.codex}/skills/create-exe-project-vm/scripts/bootstrap_exe_project_credentials.sh"
+```
+
 During skill development or when the user asks for a preview, run a no-write preview:
 
 ```bash
@@ -71,15 +84,15 @@ bash "${CODEX_HOME:-$HOME/.codex}/skills/create-exe-project-vm/scripts/provision
 
 The script:
 
-1. Creates or reuses `proj-<slug>` and ensures tag `proj`.
+1. Creates or reuses `proj-<slug>` and ensures tags `proj` and `llm`.
 2. Adds a concrete SSH alias to `~/.ssh/config`.
 3. Attaches project and agent-config GitHub integrations.
 4. Updates Codex on the VM.
 5. Clones `agent-config`, runs its bootstrap, and links remote-safe config, instructions, skills, tips, and helpers.
-6. Clones the project to `~/src/<repo>`.
+6. Clones the project to `~/src/<repo>` and creates or reuses `codex/proj-<slug>`.
 7. Configures `GH_HOST`/`GH_REPO` for the restricted project integration.
-8. Runs Codex device authentication unless already authenticated.
-9. Verifies GitHub API access, Git access, Codex auth, app-server availability, and symlinks.
+8. Configures Codex to use the ChatGPT-backed exe.dev LLM integration without VM credentials.
+9. Verifies GitHub API access, Git access, a real Codex response, app-server availability, and symlinks.
 
 If exe.dev reports that GitHub is not linked, pause and ask the user to link the exe.dev GitHub App from the exe.dev Integrations page, then rerun. Do not fall back to a broad VM token.
 
@@ -102,6 +115,7 @@ Return:
 - GitHub repository
 - local and remote paths
 - restricted integration host
-- Codex authentication result
+- remote branch
+- Codex provider verification result
 - remote verification result
 - whether the desktop connection was added or still needs the UI step

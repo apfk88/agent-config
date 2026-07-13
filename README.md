@@ -34,7 +34,10 @@ Defaults (Codex):
 For exe.dev project VMs, the `create-exe-project-vm` skill clones this repo and
 sets `AGENT_CONFIG_FILE=config.exe.toml`. This links portable Linux defaults
 instead of the macOS-specific `config.toml` while reusing AGENTS, skills, tips,
-tmux config, `tm`, and auto-pull.
+tmux config, `tm`, and auto-pull. Its one-time credential bootstrap creates a
+local `#proj`-scoped SSH key and command-limited exe.dev HTTPS token, avoiding
+1Password approvals for project VMs. Remote Codex uses the exe.dev `llm`
+integration, so VMs receive no Codex or GitHub credentials.
 
 Env overrides:
 - `AGENT_CONFIG_REPO_DIR` (default `~/dev/agent-config`)
